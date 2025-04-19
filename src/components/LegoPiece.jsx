@@ -102,38 +102,9 @@ export default function LegoPiece({
         }
       }
 
-      // Calculate hollow geometry
-      let hollow = geometry;
-      if (bottomStudPositions.length > 0) {
-        const indentDepth = studHeight; // a bit deeper than stud
-        const cutters = bottomStudPositions.map((pos) => {
-          // openEnded=true → only side walls, no caps (faster Boolean)
-          const g = new THREE.CylinderGeometry(
-            studRadius * 0.92, // shave 8 % → avoids coplanar faces
-            studRadius * 0.92,
-            indentDepth,
-            16,
-            1,
-            false
-          ).toNonIndexed();
-          // place it so its *top* is flush with the brick's bottom face
-          g.translate(pos.x, pos.y + studHeight / 2, pos.z);
-          return g;
-        });
-
-        const cutterGeom = mergeGeometries(cutters, false);
-
-        /* b) Boolean difference: brick – cutters */
-        const brickMesh = new THREE.Mesh(geometry.clone().toNonIndexed());
-        const cutterMesh = new THREE.Mesh(cutterGeom);
-
-        hollow = CSG.subtract(brickMesh, cutterMesh).geometry;
-      }
-
       return {
         topStudPositions: topStudPositions,
-        bottomStudPositions: bottomStudPositions,
-        hollowGeometry: hollow,
+        bottomStudPositions: bottomStudPositions
       };
     }, [geometry, unitsPerStud, studHeight, studRadius]);
 
@@ -144,11 +115,11 @@ export default function LegoPiece({
 
   return (
     <group {...meshProps}>
-      {hollowGeometry && (
-        <mesh geometry={hollowGeometry}>
+      (
+        <mesh geometry={geometry}>
           <meshStandardMaterial color="white" {...materialProps} />
         </mesh>
-      )}
+      )
 
       {/* top studs (as before) */}
       {topStudPositions.map((pos, i) => (

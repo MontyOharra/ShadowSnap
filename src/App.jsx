@@ -20,37 +20,16 @@ export default function App() {
       .translate(-0.5, 0, 1.5) // lift to y‑range 0…0.2, front half
       .toNonIndexed(); // make non‑indexed so merge is painless
 
-    const tri = new THREE.Shape()
-      .moveTo(0, 0, 0)
-      .lineTo(-1, 0, 0)
-      .lineTo(-1, 3, 0)
-      .lineTo(0, 1, 0)
-      .closePath();
-
-    const cap = new THREE.ShapeGeometry(tri).toNonIndexed();
-
-    // bottom cap: sits flush on the plate at y = 0
-    const bottomCap = cap.clone().translate(0, 0, 1);
-
-    // top cap: one unit higher (matches prism height)
-    const topCap = cap.clone()
-
-    /* ---------- triangular prism 2×1 ---------- */
-    const prismBounds = new ExtrudeGeometry(tri, {
-      depth: 1,
-      bevelEnabled: false,
-    });
-    const prism = mergeGeometries([bottomCap, prismBounds, topCap], false);
-
-    const sphere = new THREE.SphereGeometry(1).translate(0, 1, 0).toNonIndexed();
 
     /* ---------- merge into one BufferGeometry ---------- */
     const mergedGeometry = mergeGeometries(
-      [twoByTwo, oneByTwo, prism],
+      [twoByTwo, oneByTwo],
       false
     );
     return mergedGeometry;
   }, []);
+
+  const basePlateGeometry = new THREE.BoxGeometry(20, .1, 20); 
 
   return (
     <Canvas camera={{ position: [5, 5, 5], fov: 60 }}>
@@ -60,7 +39,7 @@ export default function App() {
       <directionalLight position={[5, 10, 5]} intensity={1} />
 
       <LegoPiece
-        geometry={geometry}
+        geometry={basePlateGeometry}
         unitsPerStud={1}
         position={[0, 0, 0]}
         materialProps={{ side: THREE.DoubleSide }}
