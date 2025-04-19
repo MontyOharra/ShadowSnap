@@ -6,14 +6,17 @@ const LegoPiece = forwardRef((
   {
     geometry,
     studSpacing = 0.8,
-    studRadius  = 0.2,
-    studHeight  = 0.1,
+    studRadius = 0.2,
+    studHeight = 0.1,
+    isSelected = false,
     ...meshProps
   },
   ref
 ) => {
   // compute all the stud positions once per geometry/spacing
   const studPositions = useMemo(() => {
+    if (!geometry) return []
+    
     geometry.computeBoundingBox()
     const bb = geometry.boundingBox
     const min = bb.min, max = bb.max
@@ -28,12 +31,23 @@ const LegoPiece = forwardRef((
     return positions
   }, [geometry, studSpacing, studRadius, studHeight])
 
+  // Create materials with useMemo to prevent unnecessary recreations
+  const baseMaterial = useMemo(() => 
+    new THREE.MeshStandardMaterial({ 
+      color: isSelected ? '#ffff00' : 'white',
+      emissive: isSelected ? '#333300' : '#000000'
+    }), [isSelected])
+
+  const studMaterial = useMemo(() => 
+    new THREE.MeshStandardMaterial({ 
+      color: isSelected ? '#ffff00' : 'lightgray',
+      emissive: isSelected ? '#333300' : '#000000'
+    }), [isSelected])
+
   return (
     <group ref={ref} {...meshProps}>
       {/* the main shape */}
-      <mesh geometry={geometry}>
-        <meshStandardMaterial color="white" />
-      </mesh>
+      <mesh geometry={geometry} material={baseMaterial} />
 
       {/* one small cylinder per stud */}
       {studPositions.map((pos, i) => (
@@ -41,13 +55,16 @@ const LegoPiece = forwardRef((
           key={i}
           position={pos.toArray()}
           rotation={[-Math.PI / 2, 0, 0]}
+          material={studMaterial}
         >
           <cylinderGeometry args={[studRadius, studRadius, studHeight, 16]} />
-          <meshStandardMaterial color="lightgray" />
         </mesh>
       ))}
     </group>
   )
 })
+
+// Add display name for better debugging
+LegoPiece.displayName = 'LegoPiece'
 
 export default LegoPiece
