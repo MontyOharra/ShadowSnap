@@ -1,6 +1,7 @@
 import React from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
+import BuildScene from './components/buildScene.jsx';
 
 export default function App() {
   const [blueBoxPosition, setBlueBoxPosition] = React.useState([0, 0, 0])
@@ -31,14 +32,7 @@ export default function App() {
       <directionalLight position={[5, 5, 5]} intensity={1} />
 
       {/* a simple red box at the origin */}
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="orangered" />
-      </mesh>
-      <mesh position={blueBoxPosition} >
-        <boxGeometry args={[0.5, 0.5, 0.5]}/>
-        <meshStandardMaterial color="blue" />
-      </mesh>
+      <BuildScene />
 
       {/* orbit controls so you can drag around */}
       <OrbitControls />
