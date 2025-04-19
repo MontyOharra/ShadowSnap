@@ -13,6 +13,9 @@ export default function LegoPiece({
   materialProps = {},
   ...meshProps
 }) {
+  const { position, setPosition } = React.useState(new THREE.Vector3(null, null, null));
+
+
   const { topStudPositions, bottomStudPositions, hollowGeometry } =
     useMemo(() => {
       if (!geometry) {
@@ -98,8 +101,6 @@ export default function LegoPiece({
           }
         }
       }
-
-      console.log(bottomStudPositions);
 
       // Calculate hollow geometry
       let hollow = geometry;
