@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
 import BuildScene from './components/buildScene.jsx'
-import LegoPiece from './components/LegoPiece.jsx'
 import * as THREE from 'three'
 
 // Helper function to create different LEGO piece geometries
@@ -77,9 +76,13 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedPiece])
 
+  const handlePieceClick = (index) => {
+    setSelectedPiece(pieces[index].id)
+  }
+
   return (
-    <>
-      <div style={{ position: 'absolute', top: 10, left: 10, color: 'white' }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 10, left: 10, color: 'white', zIndex: 1 }}>
         <h3>Controls:</h3>
         <p>Click a piece to select it</p>
         <p>Arrow keys to move selected piece</p>
@@ -91,28 +94,27 @@ export default function App() {
         camera={{ position: [10, 10, 10], fov: 50 }}
         style={{ background: '#222' }}
         shadows
+        gl={{
+          antialias: true,
+          alpha: true
+        }}
       >
+        <color attach="background" args={['#222']} />
+        
         {/* helpers to confirm we're in the right place */}
         <axesHelper args={[2]} />
         <gridHelper args={[10, 10]} />
 
         {/* base scene with walls and lighting */}
-        <BuildScene />
-
-        {/* LEGO pieces */}
-        {pieces.map(piece => (
-          <LegoPiece
-            key={piece.id}
-            geometry={geometries[piece.type]}
-            position={piece.position}
-            rotation={[0, piece.rotation, 0]}
-            onClick={(e) => {
-              e.stopPropagation()
-              setSelectedPiece(piece.id)
-            }}
-            isSelected={piece.id === selectedPiece}
-          />
-        ))}
+        <BuildScene 
+          pieces={pieces.map(piece => ({
+            geometry: geometries[piece.type],
+            position: piece.position,
+            rotation: [0, piece.rotation, 0],
+            isSelected: piece.id === selectedPiece
+          }))}
+          onPieceClick={handlePieceClick}
+        />
 
         {/* Click handler for deselection */}
         <mesh
@@ -129,6 +131,6 @@ export default function App() {
         <OrbitControls />
         <Stats />
       </Canvas>
-    </>
+    </div>
   )
 }

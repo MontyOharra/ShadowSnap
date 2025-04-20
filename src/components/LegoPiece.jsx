@@ -47,7 +47,12 @@ const LegoPiece = forwardRef((
   return (
     <group ref={ref} {...meshProps}>
       {/* the main shape */}
-      <mesh geometry={geometry} material={baseMaterial} />
+      <mesh 
+        geometry={geometry} 
+        material={baseMaterial}
+        castShadow
+        receiveShadow
+      />
 
       {/* one small cylinder per stud */}
       {studPositions.map((pos, i) => (
@@ -56,6 +61,8 @@ const LegoPiece = forwardRef((
           position={pos.toArray()}
           rotation={[-Math.PI / 2, 0, 0]}
           material={studMaterial}
+          castShadow
+          receiveShadow
         >
           <cylinderGeometry args={[studRadius, studRadius, studHeight, 16]} />
         </mesh>
