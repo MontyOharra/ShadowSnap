@@ -1,12 +1,66 @@
 // BuildMode.jsx
 import { useRef, useState, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
+import * as THREE from "three";
 import { useGame } from "../../stores/useGame";
 import * as LegoBrick from "../legoPieces/LegoBrick";
 import { LegoBasePlate16x16 } from "../legoPieces/LegoPlate";
 
 export default function BuildMode() {
+  const { scene } = useThree();
+  const wallsRef = useRef();
+  const directionalLightRef = useRef();
+  const lightTargetRef = useRef();
+
+  useEffect(() => {
+    // Create light target
+    const target = new THREE.Object3D();
+    target.position.set(25, 0, 25); // Point light towards the right wall
+    scene.add(target);
+    lightTargetRef.current = target;
+
+    // Create walls
+    const wallGeometry = new THREE.BoxGeometry(32, 16, 0.5);
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: "#f8f8f8",
+      transparent: false,
+      opacity: 0.8,
+    });
+
+    // Create walls group
+    const walls = new THREE.Group();
+    wallsRef.current = walls;
+
+    // Create two walls
+    const wallPositions = [
+      [-16.25, 8, 0], // back wall
+      [0, 8, -16.25], // front wall
+    ];
+
+    const wallRotations = [
+      [0, Math.PI / 2, 0], // back wall
+      [0, 0, 0], // front wall
+    ];
+
+    wallPositions.forEach((pos, i) => {
+      const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+      wall.position.set(...pos);
+      wall.rotation.set(...wallRotations[i]);
+      wall.receiveShadow = true;
+      wall.castShadow = true;
+      walls.add(wall);
+    });
+
+    scene.add(walls);
+
+    return () => {
+      scene.remove(walls);
+      scene.remove(target); // Clean up target
+      wallGeometry.dispose();
+      wallMaterial.dispose();
+    };
+  }, [scene]);
   /* keyboard --------------------------------------------------------- */
   const [, getKeys] = useKeyboardControls();
 
@@ -58,33 +112,53 @@ export default function BuildMode() {
   });
 
   return (
-    <group>
-      {/* Render placed pieces */}
-      
-      {pieces.map((p) => {
-        const props = {
-          position: p.pos,
-          rotation: p.rot,
-          selected: false,
-          color: "#ffffff",
-          onClick: p.isBasePlate ? undefined : () => stageExistingPiece(p.id),
-        };
-        return getBrick(p.type, p.id, props);
-      })}
-
-      {/* Render staged piece if it exists */}
-      {stagedPiece && (
-        <group>
-          {getBrick(stagedPiece.piece.type, "staged", {
-            position: stagedPiece.piece.pos,
-            rotation: stagedPiece.piece.rot,
-            selected: true,
-            color: ghostValid ? "#0080ff" : "#ff4040",
-            onClick: undefined,
-          })}
-        </group>
+    <>
+      <directionalLight
+        ref={directionalLightRef}
+        position={[20, 5, 10]} // Positioned to create dramatic shadows from the back-left
+        intensity={1.5}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0001}
+        shadow-camera-far={50}
+        shadow-camera-left={-25}
+        shadow-camera-right={25}
+        shadow-camera-top={25}
+        shadow-camera-bottom={-25}
+      />
+      {/* Ambient light for overall scene illumination */}
+      <ambientLight intensity={0.15} />
+      {directionalLightRef.current && (
+        <directionalLightHelper args={[directionalLightRef.current, 5]} />
       )}
-    </group>
+      <group>
+        {/* Render placed pieces */}
+
+        {pieces.map((p) => {
+          const props = {
+            position: p.pos,
+            rotation: p.rot,
+            selected: false,
+            color: "#ffffff",
+            onClick: p.isBasePlate ? undefined : () => stageExistingPiece(p.id),
+          };
+          return getBrick(p.type, p.id, props);
+        })}
+
+        {/* Render staged piece if it exists */}
+        {stagedPiece && (
+          <group>
+            {getBrick(stagedPiece.piece.type, "staged", {
+              position: stagedPiece.piece.pos,
+              rotation: stagedPiece.piece.rot,
+              selected: true,
+              color: ghostValid ? "#0080ff" : "#ff4040",
+              onClick: undefined
+            })}
+          </group>
+        )}
+      </group>
+    </>
   );
 }
 

@@ -89,7 +89,7 @@ export default function LegoPiece({
   /* -------------------------------------------------------------- */
   return (
     <group {...meshProps}>
-      <mesh geometry={geometry} material={selected ? ghostMat : solidMat} />
+      <mesh castShadow={!selected} geometry={geometry} material={selected ? ghostMat : solidMat} />
       {selected && (
         <lineSegments geometry={edgeGeom}>
           <lineBasicMaterial color="black" linewidth={1} />

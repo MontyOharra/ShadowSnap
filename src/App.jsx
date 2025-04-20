@@ -24,6 +24,7 @@ export default function App() {
       ]}
     >
       <Canvas shadows camera={{ position: [8, 8, 8], fov: 50 }}>
+        <BuildMode />
         <axesHelper args={[2]} />
         <gridHelper args={[10, 10]} />
         <ambientLight intensity={0.3} />
