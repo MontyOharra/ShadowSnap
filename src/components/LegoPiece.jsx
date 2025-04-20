@@ -75,3 +75,4 @@ const LegoPiece = forwardRef((
 LegoPiece.displayName = 'LegoPiece'
 
 export default LegoPiece
+
