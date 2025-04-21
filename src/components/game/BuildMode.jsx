@@ -11,14 +11,21 @@ export default function BuildMode() {
   const { scene } = useThree();
   const wallsRef = useRef();
   const directionalLightRef = useRef();
+  const directionalLightRef2 = useRef();
   const lightTargetRef = useRef();
+  const lightTargetRef2 = useRef();
 
   useEffect(() => {
-    // Create light target
+    // Create light targets
     const target = new THREE.Object3D();
-    target.position.set(25, 0, 25); // Point light towards the right wall
+    target.position.set(0, 8, -16.25); // Point at front wall's center
     scene.add(target);
     lightTargetRef.current = target;
+
+    const target2 = new THREE.Object3D();
+    target2.position.set(-16.25, 8, 0); // Point at back wall's center
+    scene.add(target2);
+    lightTargetRef2.current = target2;
 
     // Create walls
     const wallGeometry = new THREE.BoxGeometry(32, 16, 0.5);
@@ -56,7 +63,8 @@ export default function BuildMode() {
 
     return () => {
       scene.remove(walls);
-      scene.remove(target); // Clean up target
+      scene.remove(target);
+      scene.remove(target2);
       wallGeometry.dispose();
       wallMaterial.dispose();
     };
@@ -67,6 +75,7 @@ export default function BuildMode() {
   /* game actions ------------------------------------------------------ */
   const moveSel = useGame((s) => s.moveSel);
   const rotateSel = useGame((s) => s.rotateSel);
+  const rotateBaseplate = useGame((s) => s.rotateBaseplate);
   const stageNewPiece = useGame((s) => s.stageNewPiece);
   const stageExistingPiece = useGame((s) => s.stageExistingPiece);
   const unstagePiece = useGame((s) => s.unstagePiece);
@@ -75,6 +84,7 @@ export default function BuildMode() {
   const confirmPlace = useGame((s) => s.confirmPlace);
   const ghostValid = useGame((s) => s.ghostValid);
   const addBasePlate = useGame((s) => s.addBasePlate);
+  const groupRotation = useGame((s) => s.groupRotation);
 
   /* local UI state ---------------------------------------------------- */
   const [currentPieceType, setCurrentPieceType] = useState("brick-1x1x1");
@@ -99,14 +109,13 @@ export default function BuildMode() {
     onPress("right", () => moveSel("right"));
     onPress("up", () => moveSel("up"));
     onPress("down", () => moveSel("down"));
-    onPress("rotate", () => rotateSel());
-
     onPress("toggle1", () => setCurrentPieceType("brick-1x1x1"));
     onPress("toggle2", () => setCurrentPieceType("brick-2x2x1"));
     onPress("toggle3", () => setCurrentPieceType("brick-3x3x.5"));
     onPress("add", () => stageNewPiece(currentPieceType, [0, 0, 0], [0, 0, 0]));
     onPress("place", () => confirmPlace());
     onPress("esc", () => unstagePiece());
+    onPress("rotateBaseplate", () => rotateBaseplate());
 
     prev.current = keys;
   });
@@ -115,7 +124,7 @@ export default function BuildMode() {
     <>
       <directionalLight
         ref={directionalLightRef}
-        position={[20, 5, 10]} // Positioned to create dramatic shadows from the back-left
+        position={[0, 8, 20]} // Position light in front of the wall
         intensity={1.5}
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -125,29 +134,45 @@ export default function BuildMode() {
         shadow-camera-right={25}
         shadow-camera-top={25}
         shadow-camera-bottom={-25}
+        target={lightTargetRef.current}
+      />
+      <directionalLight
+        ref={directionalLightRef2}
+        position={[20, 8, 0]} // Light position for back wall
+        intensity={1.5}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0001}
+        shadow-camera-far={50}
+        shadow-camera-left={-25}
+        shadow-camera-right={25}
+        shadow-camera-top={25}
+        shadow-camera-bottom={-25}
+        target={lightTargetRef2.current}
       />
       {/* Ambient light for overall scene illumination */}
       <ambientLight intensity={0.15} />
-      {directionalLightRef.current && (
-        <directionalLightHelper args={[directionalLightRef.current, 5]} />
-      )}
       <group>
         {/* Render placed pieces */}
-
-        {pieces.map((p) => {
-          const props = {
-            position: p.pos,
-            rotation: p.rot,
-            selected: false,
-            color: "#ffffff",
-            onClick: p.isBasePlate ? undefined : () => stageExistingPiece(p.id),
-          };
-          return getBrick(p.type, p.id, props);
-        })}
+        <group rotation={groupRotation}>
+          {pieces.map((p) => {
+            const props = {
+              position: p.pos,
+              rotation: p.rot,
+              selected: stagedPiece?.piece.id === p.id,
+              color: p.isBasePlate ? "#00a651" : // Classic LEGO green for baseplate
+                     p.type === "brick-1x1x1" ? "#0055bf" : // Classic LEGO blue
+                     p.type === "brick-2x2x1" ? "#c91a09" : // Classic LEGO red
+                     "#ffd700", // Classic LEGO yellow
+              onClick: p.isBasePlate ? undefined : () => stageExistingPiece(p.id),
+            };
+            return getBrick(p.type, p.id, props);
+          })}
+        </group>
 
         {/* Render staged piece if it exists */}
         {stagedPiece && (
-          <group>
+          <group rotation={groupRotation}>
             {getBrick(stagedPiece.piece.type, "staged", {
               position: stagedPiece.piece.pos,
               rotation: stagedPiece.piece.rot,

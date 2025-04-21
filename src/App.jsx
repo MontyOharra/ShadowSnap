@@ -14,13 +14,13 @@ export default function App() {
         { name: 'right',  keys: ['ArrowRight','d'] },
         { name: 'up',     keys: ['ArrowUp',  'w'] },
         { name: 'down',   keys: ['ArrowDown','s'] },
-        { name: 'rotate', keys: ['r'] },
         { name: 'toggle1', keys: ['1'] },
         { name: 'toggle2', keys: ['2'] },
         { name: 'toggle3', keys: ['3']},
         { name: 'add' , keys: ['p'] },
         { name: 'place' , keys: ['Enter'] },
         { name: 'esc' , keys: ['Escape'] },
+        { name: 'rotateBaseplate', keys: ['r'] },
       ]}
     >
       <Canvas shadows camera={{ position: [8, 8, 8], fov: 50 }}>
@@ -28,8 +28,6 @@ export default function App() {
         <axesHelper args={[2]} />
         <gridHelper args={[10, 10]} />
         <ambientLight intensity={0.3} />
-        <directionalLight position={[5, 10, 5]} intensity={1} />
-        <BuildMode />
         <OrbitControls />
       </Canvas>
     </KeyboardControls>

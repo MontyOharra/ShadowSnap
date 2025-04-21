@@ -13,8 +13,13 @@ function worldStuds(piece, kind) {
   }
   const list = kind === "top" ? def.topStudPositions : def.bottomStudPositions;
 
+  // Create a temporary vector for rotation
+  const v = new THREE.Vector3();
+  const quat = new THREE.Quaternion();
+  
+  // Apply piece rotation
   quat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), piece.rot[1]);
-
+  
   return list.map(([lx, ly, lz]) => {
     v.set(lx + 0.5, ly, lz + 0.5)
       .applyQuaternion(quat)

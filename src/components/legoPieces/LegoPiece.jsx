@@ -34,13 +34,16 @@ export default function LegoPiece({
           sy + studHeight / 2,
           sz * unitsPerStud + unitsPerStud / 2,
         ]}
+        castShadow
       >
         <cylinderGeometry args={[studRadius, studRadius, studHeight, 16]} />
         <meshStandardMaterial
-          color={selected ? color : "lightgray"}
+          color={selected ? color : color}
           transparent={selected}
           opacity={selected ? 0.25 : 1}
           depthWrite={!selected}
+          roughness={0.1}
+          metalness={0.0}
         />
       </mesh>
     ));
@@ -53,9 +56,11 @@ export default function LegoPiece({
     () =>
       new THREE.MeshPhysicalMaterial({
         color,
-        roughness: 0.35,
-        metalness: 0.03,
-        envMapIntensity: 1,
+        roughness: 0.1,
+        metalness: 0.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
+        envMapIntensity: 1.5,
         ...materialProps,
       }),
     [color, materialProps]
@@ -68,6 +73,8 @@ export default function LegoPiece({
         transparent: true,
         opacity: 0.25,
         depthWrite: false,
+        roughness: 0.1,
+        metalness: 0.0,
       }),
     [color]
   );
@@ -89,7 +96,7 @@ export default function LegoPiece({
   /* -------------------------------------------------------------- */
   return (
     <group {...meshProps}>
-      <mesh castShadow={!selected} geometry={geometry} material={selected ? ghostMat : solidMat} />
+      <mesh castShadow geometry={geometry} material={selected ? ghostMat : solidMat} />
       {selected && (
         <lineSegments geometry={edgeGeom}>
           <lineBasicMaterial color="black" linewidth={1} />

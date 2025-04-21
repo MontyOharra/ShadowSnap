@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { snapAndValidate } from "../utils/stud-utils";
+import * as THREE from "three";
 
 export const useGame = create((set) => ({
   pieces: [],
   stagedPiece: null,
   ghostValid: false, // ← global flag for rendering colour
   nextId: 1,
+  groupRotation: [0, 0, 0], // Add group rotation state
 
   /* -- 0. add baseplate (non-interactive) ------------------------- */
   addBasePlate: () =>
@@ -28,8 +30,8 @@ export const useGame = create((set) => ({
       const piece = {
         id,
         type: pieceType,
-        pos: [pos[0], 0, pos[1]],
-        rot: [0, 0, 0],
+        pos: [pos[0], 0, pos[1]], // Keep original position
+        rot: [0, 0, 0], // Don't include group rotation here
         isBasePlate: false,
       };
       const { y, valid } = snapAndValidate(state.pieces, piece);
@@ -126,40 +128,30 @@ export const useGame = create((set) => ({
       };
     }),
 
-  /* -- 3. rotate selected ghost ------------------------------------ */
-  rotateSel: () =>
-    set((state) => {
-      if (!state.stagedPiece) return {};
-      const rotatedPiece = {
-        ...state.stagedPiece.piece,
-        rot: [
-          state.stagedPiece.piece.rot[0],
-          state.stagedPiece.piece.rot[1] + Math.PI / 2,
-          state.stagedPiece.piece.rot[2],
-        ],
-      };
-
-      const snap = snapAndValidate(state.pieces, rotatedPiece);
-      rotatedPiece.pos[1] = snap.y;
-
-      return {
-        stagedPiece: {
-          ...state.stagedPiece,
-          piece: rotatedPiece,
-        },
-        ghostValid: snap.valid,
-      };
-    }),
-
   /* -- 4. confirm placement (Enter) -------------------------------- */
   confirmPlace: () =>
     set((state) => {
       if (!state.stagedPiece || !state.ghostValid) return {};
 
+      const placedPiece = {
+        ...state.stagedPiece.piece,
+        rot: [0, 0, 0], // Don't include group rotation here
+      };
+
       return {
-        pieces: [...state.pieces, state.stagedPiece.piece],
+        pieces: [...state.pieces, placedPiece],
         stagedPiece: null,
         ghostValid: false,
+      };
+    }),
+
+  rotateBaseplate: () =>
+    set((state) => {
+      // Update group rotation by 15 degrees around Y axis
+      const newRotation = [...state.groupRotation];
+      newRotation[1] = (newRotation[1] + Math.PI / 12) % (Math.PI * 2);
+      return {
+        groupRotation: newRotation
       };
     }),
 }));
