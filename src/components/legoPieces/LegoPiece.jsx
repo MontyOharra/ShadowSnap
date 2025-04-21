@@ -26,7 +26,7 @@ export function LegoPiece({
           sy + studHeight / 2,
           sz * unitsPerStud + unitsPerStud / 2,
         ]}
-        castShadow
+        castShadow={!selected}
       >
         <cylinderGeometry args={[studRadius, studRadius, studHeight, 16]} />
         <meshStandardMaterial
@@ -84,13 +84,13 @@ export function LegoPiece({
     },
     [solidMat, ghostMat, edgeGeom]
   );
-  const testing = true;
+  const testing = false;
   const sphereGeom = new THREE.SphereGeometry(0.5, 32, 32);
 
   /* -------------------------------------------------------------- */
   return (
     <group {...meshProps}>
-      <mesh geometry={sphereGeom} position={[0, 0, 0]} />
+      {testing && <mesh geometry={sphereGeom} position={[0, 0, 0]} />}
       <mesh
         castShadow={!selected}
         geometry={geometry}

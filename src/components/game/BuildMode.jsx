@@ -145,6 +145,7 @@ export default function BuildMode() {
     onPress("place", () => confirmPlace());
     onPress("esc", () => unstagePiece());
     onPress("rotateBaseplate", () => rotateBaseplate());
+    onPress("rotatePiece", () => rotateSel());
 
     prev.current = keys;
   });
