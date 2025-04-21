@@ -1,3 +1,4 @@
+// stores/useGame.js
 import { create } from "zustand";
 import { snapAndValidate } from "../utils/stud-utils";
 import * as THREE from "three";
@@ -5,25 +6,34 @@ import * as THREE from "three";
 export const useGame = create((set) => ({
   pieces: [],
   stagedPiece: null,
-  ghostValid: false, // ← global flag for rendering colour
+  ghostValid: false,
   nextId: 1,
   groupRotation: [0, 0, 0], // Add group rotation state
 
-  /* -- 0. add baseplate (non-interactive) ------------------------- */
+  /* -------------------------------------------------------------- */
+  /* 0) add the base‑plate                                          */
+  /* -------------------------------------------------------------- */
   addBasePlate: () =>
     set((state) => {
-      const basePlate = {
-        id: "baseplate",
-        type: "base-plate-16x16",
-        pos: [-8, 0, -8],
-        rot: [0, 0, 0],
-        isBasePlate: true,
-      };
+      const id = state.nextId;
       return {
-        pieces: [basePlate, ...state.pieces],
+        pieces: [
+          {
+            id,
+            type: "base-plate-16x16",
+            pos: [-8, 0, -8],
+            rot: [0, 0, 0],
+            isBasePlate: true,
+          },
+          ...state.pieces,
+        ],
+        nextId: id + 1,
       };
     }),
 
+  /* -------------------------------------------------------------- */
+  /* 1) stage a brand‑new piece                                     */
+  /* -------------------------------------------------------------- */
   stageNewPiece: (pieceType, pos = [0, 0]) => {
     set((state) => {
       const id = state.nextId;
@@ -35,100 +45,74 @@ export const useGame = create((set) => ({
         isBasePlate: false,
       };
       const { y, valid } = snapAndValidate(state.pieces, piece);
-      piece.pos[1] = y;
+
+      /* *** NEW ARRAY for pos (don’t mutate) *** */
+      piece.pos = [piece.pos[0], y, piece.pos[2]];
+
       return {
         pieces: state.pieces,
-        stagedPiece: {
-          piece: piece,
-          isNew: true,
-        },
+        stagedPiece: { piece, isNew: true },
         ghostValid: valid,
         nextId: id + 1,
       };
     });
   },
 
-  stageExistingPiece: (pieceId) => {
-    set((state) => {
-      if (state.stagedPiece != null) {
-        return {};
-      }
-      const pieceToBeStaged = state.pieces.find(
-        (currPiece) => currPiece.id === pieceId
-      );
-      if (!pieceToBeStaged) return {};
-
-      // Validate the piece in its current position
-      const { valid } = snapAndValidate(
-        state.pieces.filter((p) => p.id !== pieceId),
-        pieceToBeStaged
-      );
-
-      return {
-        pieces: state.pieces.filter((currPiece) => currPiece.id !== pieceId),
-        stagedPiece: {
-          piece: pieceToBeStaged,
-          isNew: false,
-          oldPos: [...pieceToBeStaged.pos],
-          oldRot: [...pieceToBeStaged.rot],
-        },
-        ghostValid: valid,
-      };
-    });
-  },
-
-  unstagePiece: () => {
-    set((state) => {
-      if (state.stagedPiece == null) {
-        return {};
-      }
-      if (state.stagedPiece.isNew) {
-        return { stagedPiece: null, ghostValid: false };
-      } else {
-        // For existing pieces, restore their original position
-        const revertedPiece = {
-          ...state.stagedPiece.piece,
-          pos: state.stagedPiece.oldPos,
-          rot: state.stagedPiece.oldRot,
-        };
-        return {
-          pieces: [...state.pieces, revertedPiece],
-          stagedPiece: null,
-          ghostValid: false,
-        };
-      }
-    });
-  },
-
-  /* -- 2. move selected ghost one stud ------------------------------ */
+  /* -------------------------------------------------------------- */
+  /* 2) move staged piece one stud                                  */
+  /* -------------------------------------------------------------- */
   moveSel: (dir) =>
     set((state) => {
       if (!state.stagedPiece) return {};
+
       const step = 1;
+      const old = state.stagedPiece.piece;
+
       const movedPiece = {
-        ...state.stagedPiece.piece,
+        ...old,
         pos: [
-          state.stagedPiece.piece.pos[0] +
-            (dir === "left" ? -step : dir === "right" ? step : 0),
-          state.stagedPiece.piece.pos[1],
-          state.stagedPiece.piece.pos[2] +
-            (dir === "down" ? step : dir === "up" ? -step : 0),
+          old.pos[0] + (dir === "left" ? -step : dir === "right" ? step : 0),
+          old.pos[1], // Y filled in after snap
+          old.pos[2] + (dir === "down" ? step : dir === "up" ? -step : 0),
         ],
       };
 
       const snap = snapAndValidate(state.pieces, movedPiece);
-      movedPiece.pos[1] = snap.y;
+      movedPiece.pos = [movedPiece.pos[0], snap.y, movedPiece.pos[2]]; // NEW ARRAY
 
       return {
-        stagedPiece: {
-          ...state.stagedPiece,
-          piece: movedPiece,
-        },
+        stagedPiece: { ...state.stagedPiece, piece: movedPiece },
         ghostValid: snap.valid,
       };
     }),
 
-  /* -- 4. confirm placement (Enter) -------------------------------- */
+  /* -------------------------------------------------------------- */
+  /* 3) rotate staged piece 90° around Y                            */
+  /* -------------------------------------------------------------- */
+  rotateSel: () =>
+    set((state) => {
+      if (!state.stagedPiece) return {};
+
+      const old = state.stagedPiece.piece;
+
+      const rotatedPiece = {
+        ...old,
+        rot: [old.rot[0], old.rot[1] + Math.PI / 2, old.rot[2]], // *** NEW ARRAY ***
+        pos: [...old.pos], // clone before adjusting Y
+      };
+
+      const snap = snapAndValidate(state.pieces, rotatedPiece);
+      rotatedPiece.pos = [rotatedPiece.pos[0], snap.y, rotatedPiece.pos[2]]; // NEW ARRAY
+
+      return {
+        stagedPiece: { ...state.stagedPiece, piece: rotatedPiece },
+        ghostValid: snap.valid,
+      };
+    }),
+
+  /* -------------------------------------------------------------- */
+  /* 4) confirm placement                                           */
+  /* -------------------------------------------------------------- */
   confirmPlace: () =>
     set((state) => {
       if (!state.stagedPiece || !state.ghostValid) return {};
@@ -142,6 +126,75 @@ export const useGame = create((set) => ({
         pieces: [...state.pieces, placedPiece],
         stagedPiece: null,
         ghostValid: false,
+      };
+    }),
+
+  /* -------------------------------------------------------------- */
+  /* 5) stage an existing piece                                     */
+  /* -------------------------------------------------------------- */
+  stageExistingPiece: (pieceId) =>
+    set((state) => {
+      if (state.stagedPiece) return {};
+
+      const pieceToBeStaged = state.pieces.find((p) => p.id === pieceId);
+      if (!pieceToBeStaged) return {};
+
+      const { valid } = snapAndValidate(
+        state.pieces.filter((p) => p.id !== pieceId),
+        pieceToBeStaged
+      );
+
+      return {
+        pieces: state.pieces.filter((p) => p.id !== pieceId),
+        stagedPiece: {
+          piece: pieceToBeStaged,
+          isNew: false,
+          oldPos: [...pieceToBeStaged.pos],
+          oldRot: [...pieceToBeStaged.rot],
+        },
+        ghostValid: valid,
+      };
+    }),
+
+  /* -------------------------------------------------------------- */
+  /* 6) unstage piece (Esc)                                         */
+  /* -------------------------------------------------------------- */
+  unstagePiece: () =>
+    set((state) => {
+      if (!state.stagedPiece) return {};
+
+      if (state.stagedPiece.isNew) {
+        return { stagedPiece: null, ghostValid: false };
+      }
+
+      return {
+        pieces: [
+          ...state.pieces,
+          {
+            ...state.stagedPiece.piece,
+            pos: state.stagedPiece.oldPos,
+            rot: state.stagedPiece.oldRot,
+          },
+        ],
+        stagedPiece: null,
+        ghostValid: false,
+      };
+    }),
+
+  /* -------------------------------------------------------------- */
+  /* 7) change type of a staged new piece                           */
+  /* -------------------------------------------------------------- */
+  changeNewPieceType: (newType) =>
+    set((state) => {
+      if (!state.stagedPiece) return {};
+      const updatedPiece = { ...state.stagedPiece.piece, type: newType };
+
+      const { y, valid } = snapAndValidate(state.pieces, updatedPiece);
+      updatedPiece.pos = [updatedPiece.pos[0], y, updatedPiece.pos[2]]; // NEW ARRAY
+
+      return {
+        stagedPiece: { ...state.stagedPiece, piece: updatedPiece },
+        ghostValid: valid,
       };
     }),
 

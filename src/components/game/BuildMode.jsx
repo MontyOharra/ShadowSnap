@@ -6,6 +6,8 @@ import * as THREE from "three";
 import { useGame } from "../../stores/useGame";
 import * as LegoBrick from "../legoPieces/LegoBrick";
 import { LegoBasePlate16x16 } from "../legoPieces/LegoPlate";
+import { LegoSlant1 } from "../legoPieces/LegoSlant";
+import { PI } from "three/tsl";
 
 export default function BuildMode() {
   const { scene } = useThree();
@@ -84,6 +86,7 @@ export default function BuildMode() {
   const confirmPlace = useGame((s) => s.confirmPlace);
   const ghostValid = useGame((s) => s.ghostValid);
   const addBasePlate = useGame((s) => s.addBasePlate);
+  const changeNewPieceType = useGame((s) => s.changeNewPieceType);
   const groupRotation = useGame((s) => s.groupRotation);
 
   /* local UI state ---------------------------------------------------- */
@@ -91,6 +94,8 @@ export default function BuildMode() {
 
   /* prev‑state ref to catch rising edges ----------------------------- */
   const prev = useRef({});
+  const lastMoveTime = useRef(0);
+  const MOVE_COOLDOWN = 200; // milliseconds between moves
 
   // Add baseplate on component mount
   useEffect(() => {
@@ -99,19 +104,43 @@ export default function BuildMode() {
 
   useFrame(() => {
     const keys = getKeys(); // current pressed map
+    const currentTime = Date.now();
 
     /* helper to run cb on first frame key is down -------------------- */
     const onPress = (name, cb) => {
       if (keys[name] && !prev.current[name]) cb();
     };
 
-    onPress("left", () => moveSel("left"));
-    onPress("right", () => moveSel("right"));
-    onPress("up", () => moveSel("up"));
-    onPress("down", () => moveSel("down"));
-    onPress("toggle1", () => setCurrentPieceType("brick-1x1x1"));
-    onPress("toggle2", () => setCurrentPieceType("brick-2x2x1"));
-    onPress("toggle3", () => setCurrentPieceType("brick-3x3x.5"));
+    /* helper to run cb with cooldown -------------------------------- */
+    const onMove = (name, cb) => {
+      if (keys[name] && currentTime - lastMoveTime.current >= MOVE_COOLDOWN) {
+        cb();
+        lastMoveTime.current = currentTime;
+      }
+    };
+
+    onMove("left", () => moveSel("left"));
+    onMove("right", () => moveSel("right"));
+    onMove("up", () => moveSel("up"));
+    onMove("down", () => moveSel("down"));
+    onPress("rotate", () => rotateSel());
+
+    onPress("toggle1", () => {
+      setCurrentPieceType("brick-1x1x1");
+      if (stagedPiece) changeNewPieceType("brick-1x1x1");
+    });
+    onPress("toggle2", () => {
+      setCurrentPieceType("brick-2x2x1");
+      if (stagedPiece) changeNewPieceType("brick-2x2x1");
+    });
+    onPress("toggle3", () => {
+      setCurrentPieceType("brick-3x3x.5");
+      if (stagedPiece) changeNewPieceType("brick-3x3x.5");
+    });
+    onPress("toggle4", () => {
+      setCurrentPieceType("slant-1");
+      if (stagedPiece) changeNewPieceType("slant-1");
+    });
     onPress("add", () => stageNewPiece(currentPieceType, [0, 0, 0], [0, 0, 0]));
     onPress("place", () => confirmPlace());
     onPress("esc", () => unstagePiece());
@@ -178,7 +207,7 @@ export default function BuildMode() {
               rotation: stagedPiece.piece.rot,
               selected: true,
               color: ghostValid ? "#0080ff" : "#ff4040",
-              onClick: undefined
+              onClick: undefined,
             })}
           </group>
         )}
@@ -197,7 +226,9 @@ function getBrick(type, key, props) {
     case "brick-3x3x.5":
       return <LegoBrick.LegoBrick3x3xmed key={key} {...props} />;
     case "base-plate-16x16":
-      return <LegoBasePlate16x16 key={"base"} {...props} />;
+      return <LegoBasePlate16x16 key={key} {...props} />;
+    case "slant-1":
+      return <LegoSlant1 key={key} {...props} />;
     default:
       return null;
   }

@@ -6,15 +6,7 @@ const unitsPerStud = 1; // global grid size
 const studRadius = 0.28;
 const studHeight = 0.175;
 
-/**
- * LegoPiece
- * @param geometry    THREE.BufferGeometry
- * @param topOffsets  [[x,z], …]  stud positions in grid coords
- * @param selected    bool
- * @param color       plastic colour
- * ...meshProps       position, rotation, onClick, etc.
- */
-export default function LegoPiece({
+export function LegoPiece({
   geometry,
   topStudPositions = [],
   selected = false,
@@ -92,11 +84,18 @@ export default function LegoPiece({
     },
     [solidMat, ghostMat, edgeGeom]
   );
+  const testing = true;
+  const sphereGeom = new THREE.SphereGeometry(0.5, 32, 32);
 
   /* -------------------------------------------------------------- */
   return (
     <group {...meshProps}>
-      <mesh castShadow geometry={geometry} material={selected ? ghostMat : solidMat} />
+      <mesh geometry={sphereGeom} position={[0, 0, 0]} />
+      <mesh
+        castShadow={!selected}
+        geometry={geometry}
+        material={selected ? ghostMat : solidMat}
+      />
       {selected && (
         <lineSegments geometry={edgeGeom}>
           <lineBasicMaterial color="black" linewidth={1} />

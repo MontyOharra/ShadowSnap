@@ -1,4 +1,4 @@
-import LegoPiece from "./LegoPiece";
+import { LegoPiece } from "./LegoPiece";
 import { pieceDetails } from "../../utils/pieceDetails";
 import { useMemo } from "react";
 
@@ -36,5 +36,4 @@ export function LegoBrick3x3xmed(props) {
       {...props}
     />
   );
-
 }
