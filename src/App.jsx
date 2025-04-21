@@ -2,13 +2,11 @@
 import React from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import BuildMode from "./components/game/BuildMode";
-import BuildModeInventory from "./components/game/buildMode/BuildModeInventory";
+import BuildMode from "./components/game/buildMode/BuildMode";
 import { KeyboardControls } from "@react-three/drei";
 import { useGame } from "./stores/useGame";
 
 export default function App() {
-  // pull setter & current rotation from the store
   const setGroupRotation = useGame((s) => s.setGroupRotation);
   const deg = useGame((s) => Math.round((s.groupRotation[1] * 180) / Math.PI));
 

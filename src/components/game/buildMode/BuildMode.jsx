@@ -1,13 +1,12 @@
 // BuildMode.jsx
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
+
+import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
-import * as THREE from "three";
-import { useGame } from "../../stores/useGame";
-import * as LegoBrick from "../legoPieces/LegoBrick";
-import { LegoBasePlate16x16 } from "../legoPieces/LegoPlate";
-import { LegoSlant1 } from "../legoPieces/LegoSlant";
-import { PI } from "three/tsl";
+
+import { useGame } from "../../../stores/useGame.js";
+import { getLegoPiece } from "../../../utils/getLegoPiece.jsx";
 
 export default function BuildMode() {
   const { scene } = useThree();
@@ -89,17 +88,14 @@ export default function BuildMode() {
   const changeNewPieceType = useGame((s) => s.changeNewPieceType);
   const groupRotation = useGame((s) => s.groupRotation);
 
-  /* local UI state ---------------------------------------------------- */
-  const [currentPieceType, setCurrentPieceType] = useState("brick-1x1x1");
-
   /* prev‑state ref to catch rising edges ----------------------------- */
   const prev = useRef({});
   const lastMoveTime = useRef(0);
   const MOVE_COOLDOWN = 200; // milliseconds between moves
 
-  // Add baseplate on component mount
   useEffect(() => {
     addBasePlate();
+    changeNewPieceType("brick-1x1x1");
   }, []);
 
   useFrame(() => {
@@ -126,22 +122,18 @@ export default function BuildMode() {
     onPress("rotate", () => rotateSel());
 
     onPress("toggle1", () => {
-      setCurrentPieceType("brick-1x1x1");
       if (stagedPiece) changeNewPieceType("brick-1x1x1");
     });
     onPress("toggle2", () => {
-      setCurrentPieceType("brick-2x2x1");
       if (stagedPiece) changeNewPieceType("brick-2x2x1");
     });
     onPress("toggle3", () => {
-      setCurrentPieceType("brick-3x3x.5");
       if (stagedPiece) changeNewPieceType("brick-3x3x.5");
     });
     onPress("toggle4", () => {
-      setCurrentPieceType("slant-1");
       if (stagedPiece) changeNewPieceType("slant-1");
     });
-    onPress("add", () => stageNewPiece(currentPieceType, [0, 0, 0], [0, 0, 0]));
+    onPress("add", () => stageNewPiece([0, 0, 0]));
     onPress("place", () => confirmPlace());
     onPress("esc", () => unstagePiece());
     onPress("rotateBaseplate", () => rotateBaseplate());
@@ -181,33 +173,37 @@ export default function BuildMode() {
         target={lightTargetRef2.current}
       />
       {/* Ambient light for overall scene illumination */}
-      <ambientLight intensity={0.15} />
-      <group>
+      // <ambientLight intensity={0.15} />
+      <group rotation={groupRotation}>
         {/* Render placed pieces */}
-        <group rotation={groupRotation}>
+        <group>
           {pieces.map((p) => {
             const props = {
               position: p.pos,
               rotation: p.rot,
-              selected: stagedPiece?.piece.id === p.id,
-              color: p.isBasePlate ? "#00a651" : // Classic LEGO green for baseplate
-                     p.type === "brick-1x1x1" ? "#0055bf" : // Classic LEGO blue
-                     p.type === "brick-2x2x1" ? "#c91a09" : // Classic LEGO red
-                     "#ffd700", // Classic LEGO yellow
-              onClick: p.isBasePlate ? undefined : () => stageExistingPiece(p.id),
+              staged: false,
+              color: p.isBasePlate
+                ? "#00a651"
+                : p.type === "brick-1x1x1"
+                ? "#0055bf"
+                : p.type === "brick-2x2x1"
+                ? "#c91a09" 
+                : "#ffd700",
+              onClick: p.isBasePlate
+                ? undefined
+                : () => stageExistingPiece(p.id),
             };
-            return getBrick(p.type, p.id, props);
+            return getLegoPiece(p.type, p.id, props);
           })}
         </group>
 
-        {/* Render staged piece if it exists */}
         {stagedPiece && (
-          <group rotation={groupRotation}>
-            {getBrick(stagedPiece.piece.type, "staged", {
+          <group>
+            {getLegoPiece(stagedPiece.piece.type, "staged", {
               position: stagedPiece.piece.pos,
               rotation: stagedPiece.piece.rot,
-              selected: true,
-              color: ghostValid ? "#0080ff" : "#ff4040",
+              staged: true,
+              isValid: ghostValid,
               onClick: undefined,
             })}
           </group>
@@ -215,22 +211,4 @@ export default function BuildMode() {
       </group>
     </>
   );
-}
-
-/* helper to return the right brick component ------------------------- */
-function getBrick(type, key, props) {
-  switch (type) {
-    case "brick-1x1x1":
-      return <LegoBrick.LegoBrick1x1x1 key={key} {...props} />;
-    case "brick-2x2x1":
-      return <LegoBrick.LegoBrick2x2x1 key={key} {...props} />;
-    case "brick-3x3x.5":
-      return <LegoBrick.LegoBrick3x3xmed key={key} {...props} />;
-    case "base-plate-16x16":
-      return <LegoBasePlate16x16 key={key} {...props} />;
-    case "slant-1":
-      return <LegoSlant1 key={key} {...props} />;
-    default:
-      return null;
-  }
 }

@@ -1,6 +1,6 @@
-import { LegoPiece } from "./LegoPiece";
 import { pieceDetails } from "../../utils/pieceDetails";
 import { useMemo } from "react";
+import LegoPiece from "./LegoPiece";
 
 export function LegoBrick1x1x1(props) {
   const def = pieceDetails["brick-1x1x1"];

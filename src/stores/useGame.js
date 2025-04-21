@@ -5,6 +5,7 @@ import { snapAndValidate } from "../utils/stud-utils";
 export const useGame = create((set) => ({
   pieces: [],
   stagedPiece: null,
+  newStagedPieceType: null,
   ghostValid: false,
   nextId: 1,
 
@@ -31,12 +32,12 @@ export const useGame = create((set) => ({
     }),
 
   /* 1) stage a new piece */
-  stageNewPiece: (pieceType, pos = [0, 0]) => {
+  stageNewPiece: (pos = [0, 0]) => {
     set((state) => {
       const id = state.nextId;
       const piece = {
         id,
-        type: pieceType,
+        type: state.newStagedPieceType,
         pos: [pos[0], 0, pos[1]],
         rot: [0, 0, 0],
         isBasePlate: false,
@@ -131,7 +132,7 @@ export const useGame = create((set) => ({
     set((state) => {
       if (!state.stagedPiece) return {};
       if (state.stagedPiece.isNew) {
-        return { stagedPiece: null, ghostValid: false };
+        return { stagedPiece: null, stagedPieceType: null, ghostValid: false };
       }
       return {
         pieces: [
@@ -150,12 +151,14 @@ export const useGame = create((set) => ({
   /* 7) change type of staged new piece */
   changeNewPieceType: (newType) =>
     set((state) => {
-      if (!state.stagedPiece) return {};
+      if (!state.stagedPiece) return { newStagedPieceType: newType };
+
       const updatedPiece = { ...state.stagedPiece.piece, type: newType };
       const { y, valid } = snapAndValidate(state.pieces, updatedPiece);
       updatedPiece.pos = [updatedPiece.pos[0], y, updatedPiece.pos[2]];
       return {
         stagedPiece: { ...state.stagedPiece, piece: updatedPiece },
+        newStagedPieceType: newType,
         ghostValid: valid,
       };
     }),

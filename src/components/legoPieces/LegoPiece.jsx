@@ -1,107 +1,112 @@
 // src/components/LegoPiece.jsx
 import React, { useMemo, useEffect } from "react";
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 const unitsPerStud = 1; // global grid size
 const studRadius = 0.28;
 const studHeight = 0.175;
 
-export function LegoPiece({
+export default function LegoPiece({
   geometry,
   topStudPositions = [],
-  selected = false,
+  staged = false,
+  isValidPosition = true,
   color = "#ffffff",
-  materialProps = { side: THREE.DoubleSide },
+  solidMaterialProps = { side: THREE.DoubleSide },
   ...meshProps
 }) {
-  /* -------------------------------------------------------------- */
-  /* Pre‑compute world‑space stud meshes (relative to the brick)     */
-  /* -------------------------------------------------------------- */
-  const studMeshes = useMemo(() => {
-    return topStudPositions.map(([sx, sy, sz], i) => (
-      <mesh
-        key={i}
-        position={[
-          sx * unitsPerStud + unitsPerStud / 2,
-          sy + studHeight / 2,
-          sz * unitsPerStud + unitsPerStud / 2,
-        ]}
-        castShadow={!selected}
-      >
-        <cylinderGeometry args={[studRadius, studRadius, studHeight, 16]} />
-        <meshStandardMaterial
-          color={selected ? color : color}
-          transparent={selected}
-          opacity={selected ? 0.25 : 1}
-          depthWrite={!selected}
-          roughness={0.1}
-          metalness={0.0}
-        />
-      </mesh>
-    ));
-  }, [topStudPositions, selected, color]);
 
-  /* -------------------------------------------------------------- */
-  /* Materials & edge overlay (same as before)                      */
-  /* -------------------------------------------------------------- */
-  const solidMat = useMemo(
+  const pieceWithStudsGeometry = useMemo(() => {
+    const geom = geometry.clone().toNonIndexed();
+    const studGeoms = [];
+    topStudPositions.forEach((pos) => {
+      studGeoms.push(
+        new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 16)
+          .toNonIndexed()
+          .translate(
+            pos[0] * unitsPerStud + unitsPerStud / 2,
+            pos[1] + studHeight / 2,
+            pos[2] * unitsPerStud + unitsPerStud / 2
+          )
+      );
+    });
+
+    return mergeGeometries([geom, ...studGeoms], false);
+  }, [geometry, topStudPositions]);
+    
+
+  // Material for a piece that is set down
+  const solidMaterial = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
         color,
-        roughness: 0.1,
+        roughness: 0.6,
         metalness: 0.0,
         clearcoat: 1.0,
         clearcoatRoughness: 0.1,
         envMapIntensity: 1.5,
-        ...materialProps,
+        ...solidMaterialProps,
       }),
-    [color, materialProps]
+    [color, solidMaterialProps]
   );
-
-  const ghostMat = useMemo(
+  const validGhostMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color,
+        color: "#0080ff",
         transparent: true,
         opacity: 0.25,
         depthWrite: false,
         roughness: 0.1,
         metalness: 0.0,
       }),
-    [color]
+    []
+  );
+  const invalidGhostMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#ff4040",
+        transparent: true,
+        opacity: 0.25,
+        depthWrite: false,
+        roughness: 0.1,
+        metalness: 0.0,
+      }),
+    []
   );
 
   const edgeGeom = useMemo(
-    () => new THREE.EdgesGeometry(geometry, 1e-3),
+    () => new THREE.EdgesGeometry(geometry, .1),
     [geometry]
   );
 
   useEffect(
     () => () => {
-      solidMat.dispose();
-      ghostMat.dispose();
+      solidMaterial.dispose();
+      validGhostMaterial.dispose();
+      invalidGhostMaterial.dispose();
       edgeGeom.dispose();
+      pieceWithStudsGeometry.dispose();
     },
-    [solidMat, ghostMat, edgeGeom]
+    [solidMaterial, validGhostMaterial, invalidGhostMaterial, edgeGeom, pieceWithStudsGeometry]
   );
-  const testing = false;
-  const sphereGeom = new THREE.SphereGeometry(0.5, 32, 32);
 
-  /* -------------------------------------------------------------- */
+  var material = solidMaterial;
+  if (staged && isValidPosition) material = validGhostMaterial;
+  if (staged && !isValidPosition) material = invalidGhostMaterial;
+
   return (
     <group {...meshProps}>
-      {testing && <mesh geometry={sphereGeom} position={[0, 0, 0]} />}
       <mesh
-        castShadow={!selected}
-        geometry={geometry}
-        material={selected ? ghostMat : solidMat}
+        castShadow={!staged}
+        geometry={pieceWithStudsGeometry}
+        material={material}
       />
-      {selected && (
+      {staged && (
         <lineSegments geometry={edgeGeom}>
           <lineBasicMaterial color="black" linewidth={1} />
         </lineSegments>
       )}
-      {studMeshes}
     </group>
   );
 }

@@ -1,6 +1,7 @@
-import { LegoPiece } from "./LegoPiece";
-import { pieceDetails } from "../../utils/pieceDetails";
 import { useMemo } from "react";
+
+import LegoPiece from "./LegoPiece";
+import { pieceDetails } from "../../utils/pieceDetails";
 
 export function LegoBasePlate16x16(props) {
   const def = pieceDetails["base-plate-16x16"];
