@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 function studsGrid(nx, nz) {
   // helper to fill an array with [x,z] pairs
@@ -80,6 +81,38 @@ export const pieceDetails = {
     unitsPerStud: 1,
     topStudPositions: studsGrid(16, 16), // every stud position on the plate
     bottomStudPositions: [], // baseplates have no bottom hollows
+  },
+
+  "slant-1": {
+    geometry() {
+      const boxGeom = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5).toNonIndexed();
+      const triangleFace = new THREE.Shape()
+        .moveTo(0, 0)
+        .lineTo(1, 0)
+        .lineTo(0, 1)
+        .lineTo(0, 0)
+        .closePath();
+      
+      const triangleFaceGeom = new THREE.ShapeGeometry(triangleFace).toNonIndexed();
+      const triangularPrism = new THREE.ExtrudeGeometry(triangleFace, {
+        depth: 1, // extrude one stud in Z
+        bevelEnabled: false,
+        steps: 1,
+
+      }).toNonIndexed();
+      const bottomCap = triangleFaceGeom.clone().translate(0, 0, 1);
+      const topCap = triangleFaceGeom.clone().translate(0, 0, 0);
+      // Create the geometry
+      
+      const triangularPrismGeom = mergeGeometries([triangularPrism, bottomCap, topCap], false).translate(1,0, 0);
+      const mergedGeometry = mergeGeometries([boxGeom, triangularPrismGeom], false);
+      return mergedGeometry;
+    },
+
+    height: 1,
+    unitsPerStud: 1,
+    topStudPositions: [[0, 1, 0]],
+    bottomStudPositions: [[0, 0, 0], [1, 0, 0]],
   },
 
   // …add more pieces below …

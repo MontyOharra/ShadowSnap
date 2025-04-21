@@ -2,8 +2,8 @@ import { LegoPiece } from "./LegoPiece";
 import { pieceDetails } from "../../utils/pieceDetails";
 import { useMemo } from "react";
 
-export function LegoBasePlate16x16(props) {
-  const def = pieceDetails["base-plate-16x16"];
+export function LegoSlant1(props) {
+  const def = pieceDetails["slant-1"];
   return (
     <LegoPiece
       // eslint-disable-next-line react-hooks/exhaustive-deps
