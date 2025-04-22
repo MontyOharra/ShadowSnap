@@ -8,6 +8,7 @@ import { useKeyboardControls } from "@react-three/drei";
 import { useGame } from "../../../stores/useGame.js";
 import { getLegoPiece } from "../../../utils/getLegoPiece.jsx";
 
+
 export default function BuildMode() {
   const { scene } = useThree();
   const wallsRef = useRef();

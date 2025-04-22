@@ -5,6 +5,7 @@ import { OrbitControls } from "@react-three/drei";
 import BuildMode from "./components/game/buildMode/BuildMode";
 import { KeyboardControls } from "@react-three/drei";
 import { useGame } from "./stores/useGame";
+import BuildModeInventory from "./components/game/buildMode/BuildModeInventory";
 
 export default function App() {
   const setGroupRotation = useGame((s) => s.setGroupRotation);
@@ -76,6 +77,7 @@ export default function App() {
           }}
         />
       </div>
+      <BuildModeInventory />
     </div>
   );
 }

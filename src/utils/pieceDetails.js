@@ -13,21 +13,20 @@ export const pieceDetails = {
   /* Bricks                                                             */
   /* ------------------------------------------------------------------ */
   "brick-1x1x1": {
+    name: "1x1x1",
     geometry() {
       return new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
     },
-    height: 1,
-    unitsPerStud: 1,
     topStudPositions: [[0, 1, 0]],
     bottomStudPositions: [[0, 0, 0]],
+    inventoryIcon: "🧱"
   },
 
   "brick-2x2x1": {
+    name: "2x2x1",
     geometry() {
       return new THREE.BoxGeometry(2, 1, 2).translate(1, 0.5, 1);
     },
-    height: 1,
-    unitsPerStud: 1,
     topStudPositions: [
       [0, 1, 0],
       [1, 1, 0],
@@ -40,14 +39,14 @@ export const pieceDetails = {
       [0, 0, 1],
       [1, 0, 1],
     ],
+    inventoryIcon: "2x2"
   },
 
   "brick-3x3x.5": {
+    name: "3x3x.5",
     geometry() {
       return new THREE.BoxGeometry(3, 0.5, 3).translate(1.5, 0.25, 1.5);
     },
-    height: 0.5,
-    unitsPerStud: 1,
     topStudPositions: [
       [0, 0.5, 0],
       [1, 0.5, 0],
@@ -70,20 +69,21 @@ export const pieceDetails = {
       [1, 0, 2],
       [2, 0, 2],
     ],
+    inventoryIcon: "3x3"
   },
 
   "base-plate-16x16": {
+    name: "Baseplate",
     geometry() {
       // thin plate: 0.2‑unit thick, origin at its lower‑left corner
       return new THREE.BoxGeometry(16, 0.2, 16).translate(8, -0.1, 8);
     },
-    height: 0.2, // so snapping rests bricks flush on top
-    unitsPerStud: 1,
     topStudPositions: studsGrid(16, 16), // every stud position on the plate
     bottomStudPositions: [], // baseplates have no bottom hollows
   },
 
   "slant-1": {
+    name: "Slant 1",
     geometry() {
       const boxGeom = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5).toNonIndexed();
       const triangleFace = new THREE.Shape()
@@ -108,11 +108,9 @@ export const pieceDetails = {
       const mergedGeometry = mergeGeometries([boxGeom, triangularPrismGeom], false);
       return mergedGeometry;
     },
-
-    height: 1,
-    unitsPerStud: 1,
     topStudPositions: [[0, 1, 0]],
     bottomStudPositions: [[0, 0, 0], [1, 0, 0]],
+    inventoryIcon: "slant-piece"
   },
 
   // …add more pieces below …
