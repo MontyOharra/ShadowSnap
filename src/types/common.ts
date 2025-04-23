@@ -1,0 +1,1 @@
+export type Position3 = [number, number, number];
