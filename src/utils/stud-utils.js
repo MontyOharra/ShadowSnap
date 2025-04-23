@@ -1,6 +1,6 @@
 // utils/stud-utils.js
 import * as THREE from "three";
-import { pieceDetails } from "./pieceDetails.js";
+import { getPieceFromType, pieceDetails } from "./pieceDetails.js";
 
 /* ------------------------------------------------------------------ */
 /* Re‑usable helpers                                                  */
@@ -17,7 +17,7 @@ const keyXZ = (x, z) => `${Math.round(x / GRID)}|${Math.round(z / GRID)}`;
 /* Convert local stud / hollow coords to world‑space                  */
 /* ------------------------------------------------------------------ */
 function worldStuds(piece, kind) {
-  const def = pieceDetails[piece.type];
+  const def = getPieceFromType(piece.type);
   if (!def) {
     console.error("Unknown piece type:", piece.type);
     return [];

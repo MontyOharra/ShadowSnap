@@ -24,8 +24,7 @@ export default function BuildModeInventory() {
         zIndex: 10,
       }}
     >
-      {Object.values(pieceDetails).map(((piece, i) => {
-        console.log(piece.type);
+      {Object.values(pieceDetails).map((piece) => {
         var borderStyle;
         if (piece.type == newStagedPieceType) {
             borderStyle = "2px solid #0080ff";
@@ -34,8 +33,8 @@ export default function BuildModeInventory() {
         }
         return (
             <button
-                key={i}
-                onClick={() => {changeNewPieceType(piece.type);}}
+                key={piece.type}
+                onClick={() => changeNewPieceType(piece.type)}
                 style={{
                     height: "40px",
                     fontSize: "14px",

@@ -1,9 +1,9 @@
-import { pieceDetails } from "../../utils/pieceDetails";
+import { getPieceFromType } from "../../utils/pieceDetails";
 import { useMemo } from "react";
-import LegoPiece from "./LegoPiece";
+import LegoPiece from "../game/LegoPiece";
 
 export function LegoBrick1x1x1(props) {
-  const def = pieceDetails["brick-1x1x1"];
+  const def = getPieceFromType("brick-1x1x1");
   return (
     <LegoPiece
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -15,7 +15,7 @@ export function LegoBrick1x1x1(props) {
 }
 
 export function LegoBrick2x2x1(props) {
-  const def = pieceDetails["brick-2x2x1"];
+  const def = getPieceFromType("brick-2x2x1");
   return (
     <LegoPiece
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -27,7 +27,7 @@ export function LegoBrick2x2x1(props) {
 }
 
 export function LegoBrick3x3xmed(props) {
-  const def = pieceDetails["brick-3x3x.5"];
+  const def = getPieceFromType("brick-3x3x.5");
   return (
     <LegoPiece
       // eslint-disable-next-line react-hooks/exhaustive-deps

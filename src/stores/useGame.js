@@ -151,7 +151,6 @@ export const useGame = create((set) => ({
   /* 7) change type of staged new piece */
   changeNewPieceType: (newType) =>
     set((state) => {
-      console.log(newType);
       if (!state.stagedPiece) return { newStagedPieceType: newType };
 
       const updatedPiece = { ...state.stagedPiece.piece, type: newType };

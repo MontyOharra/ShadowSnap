@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 
-import LegoPiece from "./LegoPiece";
-import { pieceDetails } from "../../utils/pieceDetails";
+import LegoPiece from "../game/LegoPiece";
+import { getPieceFromType } from "../../utils/pieceDetails";
 
 export function LegoBasePlate16x16(props) {
-  const def = pieceDetails["base-plate-16x16"];
+  const def = getPieceFromType("base-plate-16x16");
   return (
     <LegoPiece
       // eslint-disable-next-line react-hooks/exhaustive-deps

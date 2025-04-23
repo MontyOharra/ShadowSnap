@@ -8,11 +8,16 @@ function studsGrid(nx, nz) {
   return arr;
 }
 
-export const pieceDetails = {
+export function getPieceFromType(type) {
+  return pieceDetails.find(piece => piece.type === type);
+}
+
+export const pieceDetails = [
   /* ------------------------------------------------------------------ */
   /* Bricks                                                             */
   /* ------------------------------------------------------------------ */
-  "brick-1x1x1": {
+  {
+    type: "brick-1x1x1",
     name: "1x1x1",
     geometry() {
       return new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
@@ -22,7 +27,8 @@ export const pieceDetails = {
     inventoryIcon: "🧱"
   },
 
-  "brick-2x2x1": {
+  {
+    type : "brick-2x2x1",
     name: "2x2x1",
     geometry() {
       return new THREE.BoxGeometry(2, 1, 2).translate(1, 0.5, 1);
@@ -41,8 +47,9 @@ export const pieceDetails = {
     ],
     inventoryIcon: "2x2"
   },
-
-  "brick-3x3x.5": {
+  
+  {
+    type : "brick-3x3x.5",
     name: "3x3x.5",
     geometry() {
       return new THREE.BoxGeometry(3, 0.5, 3).translate(1.5, 0.25, 1.5);
@@ -72,7 +79,8 @@ export const pieceDetails = {
     inventoryIcon: "3x3"
   },
 
-  "base-plate-16x16": {
+  {
+    type: "base-plate-16x16",
     name: "Baseplate",
     geometry() {
       // thin plate: 0.2‑unit thick, origin at its lower‑left corner
@@ -82,7 +90,8 @@ export const pieceDetails = {
     bottomStudPositions: [], // baseplates have no bottom hollows
   },
 
-  "slant-1": {
+   {
+    type: "slant-1",
     name: "Slant 1",
     geometry() {
       const boxGeom = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5).toNonIndexed();
@@ -114,4 +123,4 @@ export const pieceDetails = {
   },
 
   // …add more pieces below …
-};
+];
