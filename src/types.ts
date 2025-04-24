@@ -1,10 +1,20 @@
 import * as THREE from "three";
 
 export type Position3 = [number, number, number];
+export type Direction = "left" | "right" | "up" | "down";
+export type DefinedPieceType = "brick" | "plate" | "slant";
+export type DefinedPieceId =
+  | "brick-1x1x1"
+  | "brick-2x2x1"
+  | "brick-3x3x.5"
+  | "base-plate-16x16"
+  | "slant-1";
 
 export interface PieceDetail {
   // Unique identifier used in the background
-  type: string;
+  pieceId: DefinedPieceId;
+  // Type of piece
+  type: DefinedPieceType;
   // Display name
   name: string;
   // Factory function that returns the piece's geometry
@@ -15,15 +25,25 @@ export interface PieceDetail {
   bottomStudPositions: Position3[];
   // Icon used in inventory UI
   inventoryIcon: string;
+  // Default color for the piece
+  defaultColor: string;
 }
 
 /** A placed piece in the world */
 export interface PlacedPiece {
-  id: number;
-  type: string;
+  key: number;
+  pieceId: string;
   pos: Position3;
   rot: Position3;
   isBasePlate?: boolean;
+  color?: string;
+}
+
+export interface StagedPiece {
+  piece: PlacedPiece;
+  isNew: boolean;
+  oldPos?: Position3;
+  oldRot?: Position3;
 }
 
 /** A stud or hole in world space */

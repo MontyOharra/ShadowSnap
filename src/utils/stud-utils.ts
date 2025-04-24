@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { getPieceFromType } from "./pieceDetails";
+import { getPieceFromId } from "./pieceDetails";
 import { PlacedPiece, StudWorld, Position3 } from "@/types";
 
 const tempStudPositionV3 = new THREE.Vector3();
@@ -23,9 +23,9 @@ export function worldStuds(
   piece: PlacedPiece,
   studType: "top" | "bottom"
 ): StudWorld[] {
-  const def = getPieceFromType(piece.type);
+  const def = getPieceFromId(piece.pieceId);
   if (!def) {
-    console.error("Unknown piece type:", piece.type);
+    console.error("Unknown piece type:", piece.pieceId);
     return [];
   }
 
@@ -44,7 +44,7 @@ export function worldStuds(
 
   return targetStuds.map(([xPos, yPos, zPos]) => {
     tempStudPositionV3
-      .set(xPos + 0.5, yPos, zPos + 0.5) // Center the stud in the grid section
+      .set(xPos, yPos, zPos) // Stud positions are already centered
       .applyQuaternion(tempStudRotationQuat) // Rotate the stud based on quaternion calculation
       .add(new THREE.Vector3(...piece.pos)); // Translate the stud to the correct position
 
@@ -98,15 +98,16 @@ export function snapAndValidate(
 // ------------------------------------------------------------------
 export function attemptPlace(
   pieces: PlacedPiece[],
-  type: string,
+  pieceId: string,
   gridPosXZ: [number, number],
   rotY: number
 ): PlacedPiece | null {
   const candidate: PlacedPiece = {
-    id: 9999, // temporary ID
-    type,
+    pieceId,
+    key: 9999, // temporary key
     pos: [gridPosXZ[0], 0, gridPosXZ[1]],
     rot: [0, rotY, 0],
+    isBasePlate: false,
   };
 
   const { y, valid } = snapAndValidate(pieces, candidate);

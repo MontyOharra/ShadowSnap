@@ -1,5 +1,5 @@
 // src/components/LegoPiece.jsx
-import React, { useMemo, useEffect, JSX } from "react";
+import React, { useMemo, useEffect } from "react";
 
 import * as THREE from "three";
 import { ThreeElements } from "@react-three/fiber";
@@ -9,9 +9,7 @@ import {
   getLegoPieceGhostMaterial,
   getLegoPiecePlacedMaterial,
 } from "@/utils/legoUtils";
-import { getPieceFromType } from "@/utils/pieceDetails";
-
-type R3FMeshProps = ThreeElements["mesh"];
+import { getPieceFromId } from "@/utils/pieceDetails";
 
 type LegoProps = {
   baseGeometry: THREE.BufferGeometry;
@@ -94,14 +92,14 @@ export default function Lego({
 }
 
 export function getLegoPiece(
-  type: string,
+  id: string,
   key: string,
   props: Omit<
     LegoProps,
     "baseGeometry" | "topStudPositions" | "bottomStudPositions"
   >
 ) {
-  const def = getPieceFromType(type);
+  const def = getPieceFromId(id);
   return (
     <Lego
       key={key}

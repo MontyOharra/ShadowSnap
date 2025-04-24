@@ -27,9 +27,9 @@ export function getLegoPieceGeomWithStuds(
       new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 16)
         .toNonIndexed()
         .translate(
-          pos[0] * unitsPerStud + unitsPerStud / 2,
+          pos[0] * unitsPerStud,
           pos[1] + studHeight / 2,
-          pos[2] * unitsPerStud + unitsPerStud / 2
+          pos[2] * unitsPerStud
         )
     );
   });
