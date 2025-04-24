@@ -1,15 +1,44 @@
 // stores/useGame.js
 import { create } from "zustand";
 import { snapAndValidate } from "../utils/stud-utils";
+import { PlacedPiece, Position3 } from "@/types";
 
-export const useGame = create((set) => ({
+type Direction = "left" | "right" | "up" | "down";
+
+interface StagedPiece {
+  piece: PlacedPiece;
+  isNew: boolean;
+  oldPos?: Position3;
+  oldRot?: Position3;
+}
+
+interface SandboxModeState {
+  pieces: PlacedPiece[];
+  stagedPiece: StagedPiece | null;
+  newStagedPieceType: string | null;
+  ghostValid: boolean;
+  nextId: number;
+  groupRotation: Position3;
+}
+
+interface SandboxModeActions {
+  addBasePlate: () => void;
+  stageNewPiece: (pos?: [number, number]) => void;
+  moveSel: (dir: Direction) => void;
+  rotateSel: () => void;
+  confirmPlace: () => void;
+  stageExistingPiece: (pieceId: number) => void;
+  unstagePiece: () => void;
+  changeNewPieceType: (newType: string) => void;
+  setGroupRotation: (angleRad: number) => void;
+}
+
+export const useGame = create<SandboxModeState & SandboxModeActions>((set) => ({
   pieces: [],
   stagedPiece: null,
   newStagedPieceType: null,
   ghostValid: false,
   nextId: 1,
-
-  // rotation applied to the <group> that holds all pieces
   groupRotation: [0, 0, 0],
 
   /* 0) add the base‑plate */
@@ -21,8 +50,8 @@ export const useGame = create((set) => ({
           {
             id,
             type: "base-plate-16x16",
-            pos: [-8, 0, -8],
-            rot: [0, 0, 0],
+            pos: [-8, 0, -8] as Position3,
+            rot: [0, 0, 0] as Position3,
             isBasePlate: true,
           },
           ...state.pieces,
@@ -32,18 +61,18 @@ export const useGame = create((set) => ({
     }),
 
   /* 1) stage a new piece */
-  stageNewPiece: (pos = [0, 0]) => {
+  stageNewPiece: (pos = [0, 0]) =>
     set((state) => {
       const id = state.nextId;
-      const piece = {
+      const piece: PlacedPiece = {
         id,
-        type: state.newStagedPieceType,
-        pos: [pos[0], 0, pos[1]],
-        rot: [0, 0, 0],
+        type: state.newStagedPieceType!,
+        pos: [pos[0], 0, pos[1]] as Position3,
+        rot: [0, 0, 0] as Position3,
         isBasePlate: false,
       };
       const { y, valid } = snapAndValidate(state.pieces, piece);
-      piece.pos = [piece.pos[0], y, piece.pos[2]]; // new array
+      piece.pos = [piece.pos[0], y, piece.pos[2]] as Position3;
 
       return {
         pieces: state.pieces,
@@ -51,25 +80,28 @@ export const useGame = create((set) => ({
         ghostValid: valid,
         nextId: id + 1,
       };
-    });
-  },
+    }),
 
   /* 2) move staged piece */
-  moveSel: (dir) =>
+  moveSel: (dir: Direction) =>
     set((state) => {
       if (!state.stagedPiece) return {};
       const old = state.stagedPiece.piece;
       const step = 1;
-      const movedPiece = {
+      const movedPiece: PlacedPiece = {
         ...old,
         pos: [
           old.pos[0] + (dir === "left" ? -step : dir === "right" ? step : 0),
-          old.pos[1], // will be overwritten
+          old.pos[1],
           old.pos[2] + (dir === "down" ? step : dir === "up" ? -step : 0),
-        ],
+        ] as Position3,
       };
       const snap = snapAndValidate(state.pieces, movedPiece);
-      movedPiece.pos = [movedPiece.pos[0], snap.y, movedPiece.pos[2]]; // new array
+      movedPiece.pos = [
+        movedPiece.pos[0],
+        snap.y,
+        movedPiece.pos[2],
+      ] as Position3;
       return {
         stagedPiece: { ...state.stagedPiece, piece: movedPiece },
         ghostValid: snap.valid,
@@ -81,13 +113,17 @@ export const useGame = create((set) => ({
     set((state) => {
       if (!state.stagedPiece) return {};
       const old = state.stagedPiece.piece;
-      const rotatedPiece = {
+      const rotatedPiece: PlacedPiece = {
         ...old,
-        rot: [old.rot[0], old.rot[1] + Math.PI / 2, old.rot[2]], // new array
-        pos: [...old.pos],
+        rot: [old.rot[0], old.rot[1] + Math.PI / 2, old.rot[2]] as Position3,
+        pos: [...old.pos] as Position3,
       };
       const snap = snapAndValidate(state.pieces, rotatedPiece);
-      rotatedPiece.pos = [rotatedPiece.pos[0], snap.y, rotatedPiece.pos[2]];
+      rotatedPiece.pos = [
+        rotatedPiece.pos[0],
+        snap.y,
+        rotatedPiece.pos[2],
+      ] as Position3;
       return {
         stagedPiece: { ...state.stagedPiece, piece: rotatedPiece },
         ghostValid: snap.valid,
@@ -106,7 +142,7 @@ export const useGame = create((set) => ({
     }),
 
   /* 5) stage an existing piece */
-  stageExistingPiece: (pieceId) =>
+  stageExistingPiece: (pieceId: number) =>
     set((state) => {
       if (state.stagedPiece) return {};
       const pieceToBeStaged = state.pieces.find((p) => p.id === pieceId);
@@ -120,8 +156,8 @@ export const useGame = create((set) => ({
         stagedPiece: {
           piece: pieceToBeStaged,
           isNew: false,
-          oldPos: [...pieceToBeStaged.pos],
-          oldRot: [...pieceToBeStaged.rot],
+          oldPos: [...pieceToBeStaged.pos] as Position3,
+          oldRot: [...pieceToBeStaged.rot] as Position3,
         },
         ghostValid: valid,
       };
@@ -132,15 +168,19 @@ export const useGame = create((set) => ({
     set((state) => {
       if (!state.stagedPiece) return {};
       if (state.stagedPiece.isNew) {
-        return { stagedPiece: null, stagedPieceType: null, ghostValid: false };
+        return {
+          stagedPiece: null,
+          newStagedPieceType: null,
+          ghostValid: false,
+        };
       }
       return {
         pieces: [
           ...state.pieces,
           {
             ...state.stagedPiece.piece,
-            pos: state.stagedPiece.oldPos,
-            rot: state.stagedPiece.oldRot,
+            pos: state.stagedPiece.oldPos!,
+            rot: state.stagedPiece.oldRot!,
           },
         ],
         stagedPiece: null,
@@ -149,13 +189,20 @@ export const useGame = create((set) => ({
     }),
 
   /* 7) change type of staged new piece */
-  changeNewPieceType: (newType) =>
+  changeNewPieceType: (newType: string) =>
     set((state) => {
       if (!state.stagedPiece) return { newStagedPieceType: newType };
 
-      const updatedPiece = { ...state.stagedPiece.piece, type: newType };
+      const updatedPiece: PlacedPiece = {
+        ...state.stagedPiece.piece,
+        type: newType,
+      };
       const { y, valid } = snapAndValidate(state.pieces, updatedPiece);
-      updatedPiece.pos = [updatedPiece.pos[0], y, updatedPiece.pos[2]];
+      updatedPiece.pos = [
+        updatedPiece.pos[0],
+        y,
+        updatedPiece.pos[2],
+      ] as Position3;
       return {
         stagedPiece: { ...state.stagedPiece, piece: updatedPiece },
         newStagedPieceType: newType,
@@ -164,8 +211,8 @@ export const useGame = create((set) => ({
     }),
 
   /* NEW) set absolute baseplate rotation (radians) */
-  setGroupRotation: (angleRad) =>
+  setGroupRotation: (angleRad: number) =>
     set(() => ({
-      groupRotation: [0, angleRad, 0],
+      groupRotation: [0, angleRad, 0] as Position3,
     })),
 }));

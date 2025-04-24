@@ -1,7 +1,7 @@
-import { PieceDetail } from "@/types/PieceDetail";
-import { Position3 } from "@/types/common";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+
+import { PieceDetail, Position3 } from "@/types";
 
 function generateBasePlateStuds(nx : number, nz : number) : Position3[] {
   // helper to fill an array with [x,z] pairs
@@ -10,8 +10,12 @@ function generateBasePlateStuds(nx : number, nz : number) : Position3[] {
   return arr;
 }
 
-export function getPieceFromType(type : string): PieceDetail | undefined {
-  return pieceDetails.find(piece => piece.type === type);
+export function getPieceFromType(type : string): PieceDetail {
+  const pieceDetail = pieceDetails.find(piece => piece.type === type);
+  if (!pieceDetail) {
+    throw new Error(`Piece type ${type} not found`);
+  }
+  return pieceDetail;
 }
 
 export const pieceDetails: PieceDetail[] = [

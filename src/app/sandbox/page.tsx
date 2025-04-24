@@ -1,10 +1,13 @@
-// src/app/sandbox/page.tsx
+"use client";
+
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+import SandboxMode from "./SandboxMode";
+
 export default function Sandbox() {
   return (
-    <div>
-      <h1>Sandbox Mode</h1>
-      <p>Enjoy free-play mode with no puzzles.</p>
-      {/* Add your sandbox components here */}
-    </div>
+    <Suspense fallback={null}>
+      <SandboxMode />
+    </Suspense>
   );
 }

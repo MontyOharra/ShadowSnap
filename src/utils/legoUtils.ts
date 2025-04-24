@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
-import { Position3 } from "@/types/common";
+import { Position3 } from "@/types";
 
 export const unitsPerStud = 1; // global grid size
 export const studRadius = 0.28;

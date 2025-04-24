@@ -4,47 +4,58 @@ import React, { useMemo, useEffect, JSX } from "react";
 import * as THREE from "three";
 import { ThreeElements } from "@react-three/fiber";
 
-import { Position3 } from "@/types/common";
-import { getLegoPieceGeomWithStuds, getLegoPieceGhostMaterial, getLegoPiecePlacedMaterial } from "@/utils/legoUtils";
+import {
+  getLegoPieceGeomWithStuds,
+  getLegoPieceGhostMaterial,
+  getLegoPiecePlacedMaterial,
+} from "@/utils/legoUtils";
+import { getPieceFromType } from "@/utils/pieceDetails";
 
-type R3FMeshProps = ThreeElements['mesh']
+type R3FMeshProps = ThreeElements["mesh"];
 
-
-type LegoProps = Omit<R3FMeshProps, "geometry" | "material"> &{
-  // inherit all mesh props
-  geometry: THREE.BufferGeometry; // …then add/override ours
+type LegoProps = {
+  baseGeometry: THREE.BufferGeometry;
   topStudPositions?: [number, number, number][];
+  bottomStudPositions?: [number, number, number][];
   staged?: boolean;
   isValidPosition?: boolean;
   color?: string;
   solidMaterialProps?: THREE.MeshPhysicalMaterialParameters;
-};
+} & Omit<ThreeElements["group"], "children">;
+
 export default function Lego({
   baseGeometry,
   topStudPositions = [],
+  bottomStudPositions = [],
   staged = false,
   isValidPosition = true,
   color = "#ffffff",
-  ...meshProps
+  ...groupProps
 }: LegoProps) {
-
   // Use memo call to prevent unessecarry re-renders
   const fullGeometry: THREE.BufferGeometry = useMemo(() => {
-    return getLegoPieceGeomWithStuds(baseGeometry, topStudPositions);
-  }, [baseGeometry, topStudPositions]);
+    return getLegoPieceGeomWithStuds(
+      baseGeometry,
+      topStudPositions,
+      bottomStudPositions
+    );
+  }, [baseGeometry, topStudPositions, bottomStudPositions]);
   const edgeGeometry = useMemo(
     () => new THREE.EdgesGeometry(baseGeometry, 0.1),
     [baseGeometry]
   );
 
   const solidMaterial = useMemo(
-    () => getLegoPiecePlacedMaterial(color), [color]
+    () => getLegoPiecePlacedMaterial(color),
+    [color]
   );
   const validGhostMaterial = useMemo(
-    () => getLegoPieceGhostMaterial("#0080ff"), []
+    () => getLegoPieceGhostMaterial("#0080ff"),
+    []
   );
   const invalidGhostMaterial = useMemo(
-    () => getLegoPieceGhostMaterial("#ff4040"), []
+    () => getLegoPieceGhostMaterial("#ff4040"),
+    []
   );
 
   // Clear pre-rendered materials and geometries on component unmount
@@ -71,17 +82,33 @@ export default function Lego({
   if (staged && !isValidPosition) material = invalidGhostMaterial;
 
   return (
-    <group {...meshProps}>
-      <mesh
-        castShadow={!staged}
-        geometry={fullGeometry}
-        material={material}
-      />
+    <group {...groupProps}>
+      <mesh castShadow={!staged} geometry={fullGeometry} material={material} />
       {staged && (
         <lineSegments geometry={edgeGeometry}>
           <lineBasicMaterial color="black" linewidth={1} />
         </lineSegments>
       )}
     </group>
+  );
+}
+
+export function getLegoPiece(
+  type: string,
+  key: string,
+  props: Omit<
+    LegoProps,
+    "baseGeometry" | "topStudPositions" | "bottomStudPositions"
+  >
+) {
+  const def = getPieceFromType(type);
+  return (
+    <Lego
+      key={key}
+      baseGeometry={def.geometry()}
+      topStudPositions={def.topStudPositions}
+      bottomStudPositions={def.bottomStudPositions}
+      {...props}
+    />
   );
 }

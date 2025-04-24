@@ -1,43 +1,27 @@
-// utils/stud-utils.ts
 import * as THREE from "three";
 import { getPieceFromType } from "./pieceDetails";
+import { PlacedPiece, StudWorld, Position3 } from "@/types";
 
-/** A 3D coordinate tuple */
-export type Position3 = [number, number, number];
+const tempStudPositionV3 = new THREE.Vector3();
+const tempStudRotationQuat = new THREE.Quaternion();
+const quaternion = new THREE.Quaternion();
 
-/** A placed piece in the world */
-export interface PlacedPiece {
-  id: number;
-  type: string;
-  pos: Position3;
-  rot: Position3;
-}
-
-/** A stud or hole in world space */
-export interface StudWorld {
-  x: number;
-  y: number;
-  z: number;
-  localY: number;
-}
-
-// ------------------------------------------------------------------
-// Scratch objects for repeated use
-// ------------------------------------------------------------------
-const v = new THREE.Vector3();
-const quat = new THREE.Quaternion();
-
-// ½‑stud grid snapping – every stud centre lies on …‑1.5,‑1,‑0.5,0…
 const GRID = 0.5;
-const snap = (n: number): number => Math.round(n / GRID) * GRID;
-const keyXZ = (x: number, z: number): string => `${Math.round(x / GRID)}|${Math.round(z / GRID)}`;
+
+function getSnappedValue(n: number): number {
+  return Math.round(n / GRID) * GRID;
+}
+
+function keyXZ(x: number, z: number): string {
+  return `${getSnappedValue(x)}|${getSnappedValue(z)}`;
+}
 
 // ------------------------------------------------------------------
 // Convert local stud / hollow coords to world‑space
 // ------------------------------------------------------------------
 export function worldStuds(
   piece: PlacedPiece,
-  kind: "top" | "bottom"
+  studType: "top" | "bottom"
 ): StudWorld[] {
   const def = getPieceFromType(piece.type);
   if (!def) {
@@ -45,19 +29,32 @@ export function worldStuds(
     return [];
   }
 
-  const list = kind === "top" ? def.topStudPositions : def.bottomStudPositions;
+  let targetStuds: Position3[];
+  if (studType === "top") {
+    targetStuds = def.topStudPositions;
+  } else if (studType === "bottom") {
+    targetStuds = def.bottomStudPositions;
+  } else {
+    console.error("Unknown stud type:", studType);
+    return [];
+  }
 
-  // build quaternion for yaw rotation
-  quat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), piece.rot[1]);
+  // Quaternion for yaw rotation
+  quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), piece.rot[1]);
 
-  return list.map(([lx, ly, lz]) => {
-    v
-      .set(lx + 0.5, ly, lz + 0.5) // centre of stud / hole
-      .applyQuaternion(quat)        // rotate
-      .add(new THREE.Vector3(...piece.pos)); // translate
+  return targetStuds.map(([xPos, yPos, zPos]) => {
+    tempStudPositionV3
+      .set(xPos + 0.5, yPos, zPos + 0.5) // Center the stud in the grid section
+      .applyQuaternion(tempStudRotationQuat) // Rotate the stud based on quaternion calculation
+      .add(new THREE.Vector3(...piece.pos)); // Translate the stud to the correct position
 
     // snap X & Z to exact ½‑stud grid so keys always match
-    return { x: snap(v.x), y: v.y, z: snap(v.z), localY: ly };
+    return {
+      x: getSnappedValue(tempStudPositionV3.x),
+      y: tempStudPositionV3.y,
+      z: getSnappedValue(tempStudPositionV3.z),
+      localY: yPos,
+    };
   });
 }
 
@@ -78,7 +75,7 @@ export function snapAndValidate(
     })
   );
 
-  // 2. check candidate’s bottom holes
+  // 2. check candidate's bottom holes
   let valid = false;
   let targetY = -Infinity;
 
@@ -86,7 +83,7 @@ export function snapAndValidate(
     const k = keyXZ(s.x, s.z);
     if (map[k] !== undefined) {
       valid = true;
-      // place brick so this hole’s world‑Y == stud’s world‑Y
+      // place brick so this hole's world‑Y == stud's world‑Y
       const desiredPieceY = map[k] - s.localY;
       targetY = Math.max(targetY, desiredPieceY);
     }
