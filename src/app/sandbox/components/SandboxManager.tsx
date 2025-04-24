@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -16,13 +16,27 @@ interface SandboxManagerProps {
 }
 
 export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
-  const { camera, size } = useThree();
+  const { camera, size, scene } = useThree();
   const raycaster = useRef(new THREE.Raycaster());
   const mouse = useRef(new THREE.Vector2());
   const intersectionPoint = useRef(new THREE.Vector3());
-  const plane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
-  const lastRaycastTime = useRef(0);
-  const RAYCAST_INTERVAL = 100; // milliseconds between raycasts
+  const lastMousePosition = useRef({ x: 0, y: 0 });
+  const MOUSE_MOVE_THRESHOLD = 2; // pixels of movement before updating
+  const [spherePosition, setSpherePosition] = useState<
+    [number, number, number]
+  >([0, 0, 0]);
+  const piecesRef = useRef<THREE.Group>(null);
+
+  // Create a memoized material for the sphere
+  const sphereMaterial = useRef(
+    new THREE.MeshPhysicalMaterial({
+      color: "#0088ff",
+      transparent: true,
+      opacity: 0.5,
+      roughness: 0.1,
+      metalness: 0.0,
+    })
+  );
 
   /* keyboard --------------------------------------------------------- */
   const [, getKeys] = useKeyboardControls();
@@ -50,8 +64,27 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
   const lastMoveTime = useRef(0);
   const MOVE_COOLDOWN = 200; // milliseconds between moves
 
-  // Track last logged position to avoid spamming console
-  const lastLoggedPosition = useRef({ x: 0, y: 0 });
+  // Memoized raycast function
+  const performRaycast = useCallback(() => {
+    // Update mouse position for raycasting
+    mouse.current.x = (mousePosition.x / size.width) * 2 - 1;
+    mouse.current.y = -(mousePosition.y / size.height) * 2 + 1;
+
+    // Update the raycaster
+    raycaster.current.setFromCamera(mouse.current, camera);
+
+    // Find intersections with all pieces
+    const intersects = raycaster.current.intersectObjects(scene.children, true);
+
+    if (intersects.length > 0) {
+      const firstIntersect = intersects[0];
+      setSpherePosition([
+        firstIntersect.point.x,
+        firstIntersect.point.y,
+        firstIntersect.point.z,
+      ]);
+    }
+  }, [camera, mousePosition, size, scene]);
 
   useEffect(() => {
     addBasePlate();
@@ -61,31 +94,16 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
     const keys = getKeys(); // current pressed map
     const currentTime = Date.now();
 
-    // Only update raycast periodically
-    if (currentTime - lastRaycastTime.current >= RAYCAST_INTERVAL) {
-      // Update mouse position for raycasting
-      mouse.current.x = (mousePosition.x / size.width) * 2 - 1;
-      mouse.current.y = -(mousePosition.y / size.height) * 2 + 1;
+    // Only update raycast if mouse has moved significantly
+    const mouseMoved =
+      Math.abs(mousePosition.x - lastMousePosition.current.x) >
+        MOUSE_MOVE_THRESHOLD ||
+      Math.abs(mousePosition.y - lastMousePosition.current.y) >
+        MOUSE_MOVE_THRESHOLD;
 
-      // Update the raycaster
-      raycaster.current.setFromCamera(mouse.current, camera);
-
-      // Find intersection with the ground plane
-      raycaster.current.ray.intersectPlane(
-        plane.current,
-        intersectionPoint.current
-      );
-
-      // Log intersection point if it has changed significantly
-      if (
-        Math.abs(mousePosition.x - lastLoggedPosition.current.x) > 10 ||
-        Math.abs(mousePosition.y - lastLoggedPosition.current.y) > 10
-      ) {
-        console.log("3D Intersection Point:", intersectionPoint.current);
-        lastLoggedPosition.current = { ...mousePosition };
-      }
-
-      lastRaycastTime.current = currentTime;
+    if (mouseMoved) {
+      performRaycast();
+      lastMousePosition.current = { ...mousePosition };
     }
 
     /* helper to run cb on first frame key is down -------------------- */
@@ -123,7 +141,7 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
   return (
     <>
       <SceneBuilder />
-      <group rotation={basePlateRotation}>
+      <group rotation={basePlateRotation} ref={piecesRef}>
         {/* Render placed pieces */}
         {pieces.map((p) => {
           const props = {
@@ -149,6 +167,11 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
             })}
           </group>
         )}
+
+        {/* Mouse position indicator sphere */}
+        <mesh position={spherePosition} material={sphereMaterial.current}>
+          <sphereGeometry args={[0.5, 32, 32]} />
+        </mesh>
       </group>
     </>
   );
