@@ -36,7 +36,7 @@ export default function App() {
           {/* your build mode pieces + walls */}
           <BuildMode />
 
-          {/* fixed lighting, no longer rotates */}
+          {/*  lighting */}
           <ambientLight intensity={0.6} />
           <directionalLight
             position={[10, 15, 10]}

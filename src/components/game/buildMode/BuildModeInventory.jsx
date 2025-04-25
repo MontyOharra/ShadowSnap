@@ -24,25 +24,33 @@ export default function BuildModeInventory() {
         zIndex: 10,
       }}
     >
-      {Object.values(pieceDetails).map(((piece, i) => {
-        console.log(piece.type);
+      {Object.entries(pieceDetails).map(([pieceType, piece]) => {
+        // Skip baseplate from inventory
+        if (pieceType === "base-plate-16x16") return null;
+
         var borderStyle;
-        if (piece.type == newStagedPieceType) {
+        if (pieceType === newStagedPieceType) {
             borderStyle = "2px solid #0080ff";
         } else {
             borderStyle = "0px transparent";
         }
+
         return (
             <button
-                key={i}
-                onClick={() => {changeNewPieceType(piece.type);}}
+                key={pieceType}
+                onClick={() => {changeNewPieceType(pieceType);}}
                 style={{
                     height: "40px",
                     fontSize: "14px",
                     cursor: "pointer",
-                    border: borderStyle
+                    border: borderStyle,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                 }}
-            >{piece.inventoryIcon}</button>
+            >
+                {piece.inventoryIcon || piece.name || pieceType}
+            </button>
         );
       })}
     </div>

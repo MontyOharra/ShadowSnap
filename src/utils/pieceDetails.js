@@ -13,16 +13,19 @@ export const pieceDetails = {
   /* Bricks                                                             */
   /* ------------------------------------------------------------------ */
   "brick-1x1x1": {
+    type: "brick-1x1x1",
     name: "1x1x1",
     geometry() {
       return new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
     },
     topStudPositions: [[0, 1, 0]],
     bottomStudPositions: [[0, 0, 0]],
-    inventoryIcon: "🧱"
+    inventoryIcon: "🧱",
+    color: "#0055bf",
   },
 
   "brick-2x2x1": {
+    type: "brick-1x1x1",
     name: "2x2x1",
     geometry() {
       return new THREE.BoxGeometry(2, 1, 2).translate(1, 0.5, 1);
@@ -39,10 +42,12 @@ export const pieceDetails = {
       [0, 0, 1],
       [1, 0, 1],
     ],
-    inventoryIcon: "2x2"
+    inventoryIcon: "2x2",
+    color: "#c91a09",
   },
 
   "brick-3x3x.5": {
+    type: "brick-1x1x1",
     name: "3x3x.5",
     geometry() {
       return new THREE.BoxGeometry(3, 0.5, 3).translate(1.5, 0.25, 1.5);
@@ -69,7 +74,8 @@ export const pieceDetails = {
       [1, 0, 2],
       [2, 0, 2],
     ],
-    inventoryIcon: "3x3"
+    inventoryIcon: "3x3",
+    color: "#ffd700",
   },
 
   "base-plate-16x16": {
@@ -83,6 +89,7 @@ export const pieceDetails = {
   },
 
   "slant-1": {
+    type: "slant-1",
     name: "Slant 1",
     geometry() {
       const boxGeom = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5).toNonIndexed();
@@ -110,7 +117,8 @@ export const pieceDetails = {
     },
     topStudPositions: [[0, 1, 0]],
     bottomStudPositions: [[0, 0, 0], [1, 0, 0]],
-    inventoryIcon: "slant-piece"
+    inventoryIcon: "slant-piece",
+    color: "#0055bf",
   },
 
   // …add more pieces below …
