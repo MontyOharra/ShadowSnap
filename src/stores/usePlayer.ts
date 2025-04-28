@@ -4,7 +4,12 @@ interface PlayerState {
   settings: {
     sound: boolean;
     music: boolean;
-    quality: string;
+    masterVolume: number;
+    musicVolume: number;
+    controlsSensitivity: number;
+    vibration: boolean;
+    showTutorial: boolean;
+    language: string;
   };
   completedLevels: string[];
   unlockedLevels: string[];
@@ -26,7 +31,16 @@ function getInitialState(): PlayerState {
     if (stored) return JSON.parse(stored);
   }
   return {
-    settings: { sound: true, music: true, quality: "normal" },
+    settings: { 
+      sound: true, 
+      music: true, 
+      masterVolume: 100,
+      musicVolume: 80,
+      controlsSensitivity: 50,
+      vibration: true,
+      showTutorial: true,
+      language: "en"
+    },
     completedLevels: ["level_1"],
     unlockedLevels: ["level_1", "level_2"],
   };
