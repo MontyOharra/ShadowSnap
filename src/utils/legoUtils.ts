@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
-import { Position3 } from "@/types";
+import { BasePlateDetail, PieceDetail, Position3 } from "@/types";
+import { pieceDetails } from "./pieceDetails";
+import { basePlateDetails } from "./basePlateDetails";
 
 export const unitsPerStud = 1; // global grid size
 export const studRadius = 0.28;
@@ -33,7 +35,7 @@ export function getLegoPieceGeomWithStuds(
         )
     );
   });
-
+  
   // TODO:
   // add bottom stud functionality
 
@@ -78,4 +80,20 @@ export function getLegoPieceGhostMaterial(
     metalness: 0.0,
     side: THREE.DoubleSide,
   });
+}
+
+export function getPieceFromId(pieceId: string): PieceDetail  {
+  const pieceDetail = pieceDetails.find((piece) => piece.pieceId === pieceId);
+  if (!pieceDetail) {
+    throw new Error(`Piece id ${pieceId} not found`);
+  }
+  return pieceDetail;
+}
+
+export function getBasePlateFromId(pieceId: string): BasePlateDetail {
+  const pieceDetail = basePlateDetails.find((piece) => piece.pieceId === pieceId);
+  if (!pieceDetail) {
+    throw new Error(`Piece id ${pieceId} not found`);
+  }
+  return pieceDetail;
 }

@@ -3,8 +3,9 @@
 import { useSandboxMode } from "@/stores/useSandboxMode";
 
 export default function BasePlateRotationScrollBar() {
-  const rotateBasePiece = useSandboxMode((s) => s.rotateBasePiece);
-  const deg = useSandboxMode((s) => (s.basePieceRotation[1] * 180) / Math.PI);
+  const rotateBasePlate = useSandboxMode((s) => s.rotateBasePlate);
+  const basePlateRotation = useSandboxMode((s) => s.basePlateRotation);
+  const deg = basePlateRotation ? (basePlateRotation[1] * 180) / Math.PI : 0;
 
   return (
     <div
@@ -25,7 +26,7 @@ export default function BasePlateRotationScrollBar() {
         value={deg}
         onChange={(e) => {
           const d = parseFloat(e.target.value);
-          rotateBasePiece((d * Math.PI) / 180);
+          rotateBasePlate((d * Math.PI) / 180);
         }}
         style={{
           width: "100%",

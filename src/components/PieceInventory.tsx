@@ -36,7 +36,6 @@ export default function PieceInventory({
     getPieceFromId(Object.keys(pieces)[0]);
   }, [pieces]);
 
-
   return (
     <div
       style={{

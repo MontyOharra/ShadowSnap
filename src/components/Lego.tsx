@@ -8,6 +8,7 @@ import {
   getLegoPieceGeomWithStuds,
   getLegoPieceGhostMaterial,
   getLegoPiecePlacedMaterial,
+  getBasePlateFromId,
 } from "@/utils/legoUtils";
 import { getPieceFromId } from "@/utils/pieceDetails";
 
@@ -106,6 +107,25 @@ export function getLegoPiece(
       baseGeometry={def.geometry()}
       topStudPositions={def.topStudPositions}
       bottomStudPositions={def.bottomStudPositions}
+      {...props}
+    />
+  );
+}
+
+export function getLegoBasePlate(
+  id: string,
+  key: string,
+  props: Omit<
+    LegoProps,
+    "baseGeometry" | "topStudPositions" | "bottomStudPositions"
+  >
+) {
+  const def = getBasePlateFromId(id);
+  return (
+    <Lego
+      key={key}
+      baseGeometry={def.geometry()}
+      topStudPositions={def.topStudPositions}
       {...props}
     />
   );

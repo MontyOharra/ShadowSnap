@@ -7,25 +7,29 @@ export type DefinedPieceId =
   | "brick-1x1x1"
   | "brick-2x2x1"
   | "brick-3x3x.5"
-  | "base-plate-16x16"
   | "slant-1";
+export type DefinedBasePlateId = 
+  | "base-plate-16x16"
+  | "base-plate-8x3";
 
 export interface PieceDetail {
-  // Unique identifier used in the background
   pieceId: DefinedPieceId;
-  // Type of piece
   type: DefinedPieceType;
-  // Display name
   name: string;
-  // Factory function that returns the piece's geometry
   geometry: () => THREE.BufferGeometry;
-  // Stud locations on top of the brick
   topStudPositions: Position3[];
-  // Stud locations on bottom of the brick
   bottomStudPositions: Position3[];
-  // Icon used in inventory UI
   inventoryIcon: string;
-  // Default color for the piece
+  defaultColor: string;
+}
+
+export interface BasePlateDetail {
+  pieceId: DefinedBasePlateId;
+  name: string;
+  geometry: () => THREE.BufferGeometry;
+  topStudPositions: Position3[];
+  sizeX: number;
+  sizeZ: number;
   defaultColor: string;
 }
 
@@ -36,6 +40,16 @@ export interface Piece {
   pos: Position3;
   rot: Position3;
   color?: string;
+}
+
+export interface BasePlate {
+  key: string;
+  pieceId: string;
+  pos: Position3;
+  rot: Position3;
+  color?: string;
+  sizeX: number;
+  sizeZ: number;
 }
 
 export interface StagedPiece {

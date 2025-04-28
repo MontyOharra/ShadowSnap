@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 
 import { useSandboxMode } from "../../../stores/useSandboxMode";
-import { getLegoPiece } from "../../../components/Lego";
+import { getLegoPiece, getLegoBasePlate } from "../../../components/Lego";
 import { Direction } from "@/types";
 import SceneBuilder from "./SceneBuilder";
 
@@ -13,14 +13,14 @@ export default function SandboxManager() {
 
   // Game state
   const pieces = useSandboxMode((s) => s.pieces);
-  const basePiece = useSandboxMode((s) => s.basePiece); 
-  const basePieceRotation = useSandboxMode((s) => s.basePieceRotation);
+  const basePlate = useSandboxMode((s) => s.basePlate);
+  const basePlateRotation = useSandboxMode((s) => s.basePlateRotation);
   const stagedPiece = useSandboxMode((s) => s.stagedPiece);
   const stagedPieceColor = useSandboxMode((s) => s.stagedPieceColor);
 
   /* game actions ------------------------------------------------------ */
-  const setBasePiece = useSandboxMode((s) => s.setBasePiece);
-  const rotateBasePiece = useSandboxMode((s) => s.rotateBasePiece);
+  const setBasePlate = useSandboxMode((s) => s.setBasePlate);
+  const rotateBasePlate = useSandboxMode((s) => s.rotateBasePlate);
   const stageNewPiece = useSandboxMode((s) => s.stageNewPiece);
   const stageExistingPiece = useSandboxMode((s) => s.stageExistingPiece);
   const unstagePiece = useSandboxMode((s) => s.unstagePiece);
@@ -34,7 +34,7 @@ export default function SandboxManager() {
   const MOVE_COOLDOWN = 200; // milliseconds between moves
 
   useEffect(() => {
-    setBasePiece("base-plate-16x16", "#00a651");
+    setBasePlate("base-plate-8x3", "#00a651");
   }, []);
 
   useFrame(() => {
@@ -61,8 +61,8 @@ export default function SandboxManager() {
 
     onPress("add", () => stageNewPiece([0, 0]));
     onPress("place", () => confirmPlace(stagedPieceColor));
-    onPress("esc", () => unstagePiece());   
-    onPress("rotateBaseplate", () => rotateBasePiece(1));
+    onPress("esc", () => unstagePiece());
+    onPress("rotateBaseplate", () => rotateBasePlate(1));
     onPress("q", () => rotateStagedPiece("left"));
     onPress("e", () => rotateStagedPiece("right"));
 
@@ -72,25 +72,23 @@ export default function SandboxManager() {
   return (
     <>
       <SceneBuilder />
-      <group rotation={basePieceRotation}>
+      <group rotation={basePlateRotation}>
         {/* Render base plate */}
-        {basePiece && getLegoPiece(basePiece.pieceId, "base", {
-          position: basePiece.pos,
-          rotation: basePiece.rot,
-          color: basePiece.color,
-        })}
+        {basePlate &&
+          getLegoBasePlate(basePlate.pieceId, basePlate.key, {
+            position: basePlate.pos,
+            rotation: basePlate.rot,
+            color: basePlate.color,
+          })}
 
         {/* Render placed pieces */}
         {pieces.map((p) => {
-          const isBasePlate = p.pieceId === "base-plate-16x16";
           const props = {
             position: p.pos,
             rotation: p.rot,
             staged: false,
-            color: isBasePlate ? "#00a651" : p.color,
-            onClick: isBasePlate
-              ? undefined
-              : () => stageExistingPiece(p.key),
+            color: p.color,
+            onClick: () => stageExistingPiece(parseInt(p.key)),
           };
           return getLegoPiece(p.pieceId, p.key.toString(), props);
         })}

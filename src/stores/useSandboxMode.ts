@@ -1,11 +1,12 @@
 import { create } from "zustand";
-import { snapAndValidate } from "../utils/stud-utils";
-import { Piece, StagedPiece, Position3, Direction } from "@/types";
+import { snapAndValidate } from "../utils/studUtils";
+import { Piece, StagedPiece, Position3, Direction, BasePlate } from "@/types";
+import { getBasePlateFromId } from "@/utils/legoUtils";
 
 interface SandboxModeState {
   pieces: Piece[];
-  basePiece: Piece | null;
-  basePieceRotation: Position3;
+  basePlate: BasePlate | null;
+  basePlateRotation: Position3;
   stagedPiece: StagedPiece | null;
   newStagedPieceId: string;
   stagedPieceColor: string;
@@ -13,8 +14,8 @@ interface SandboxModeState {
 }
 
 interface SandboxModeActions {
-  setBasePiece: (pieceId: string, color: string) => void;
-  rotateBasePiece: (angleRad: number) => void;
+  setBasePlate: (pieceId: string, color: string) => void;
+  rotateBasePlate: (angleRad: number) => void;
   setNewPieceId: (newPieceId: string) => void;
   setStagedPieceColor: (color: string) => void;
   stageNewPiece: (pos?: [number, number]) => void;
@@ -28,32 +29,35 @@ interface SandboxModeActions {
 export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
   (set) => ({
     pieces: [],
-    basePiece: null,
-    basePieceRotation: [0, 0, 0],
+    basePlate: null,
+    basePlateRotation: [0, 0, 0],
     stagedPiece: null,
     newStagedPieceId: "",
     stagedPieceColor: "#FF0000", // Default to red
     nextKey: 1,
 
-    setBasePiece: (pieceId: string, color: string) =>
+    setBasePlate: (pieceId: string, color: string) =>
       set((state) => {
         const key = state.nextKey;
+        const basePlateDetail = getBasePlateFromId(pieceId);
         return {
-          basePiece: {
-            key,
+          basePlate: {
+            key: "base",
             pieceId: pieceId,
             pos: [0, 0, 0] as Position3,
             rot: [0, 0, 0] as Position3,
             color: color,
+            sizeX: basePlateDetail.sizeX,
+            sizeZ: basePlateDetail.sizeZ,
           },
           nextKey: key + 1,
           pieces: [],
         };
       }),
 
-    rotateBasePiece: (angleRad: number) =>
+    rotateBasePlate: (angleRad: number) =>
       set(() => ({
-        basePieceRotation: [0, angleRad, 0] as Position3,
+        basePlateRotation: [0, angleRad, 0] as Position3,
       })),
 
     setNewPieceId: (newPieceId: string) =>
@@ -70,12 +74,12 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
         };
 
         // Validate the new position
-        const { y, valid } = snapAndValidate(state.pieces, updatedStagedPiece);
-        updatedStagedPiece.pos = [
-          updatedStagedPiece.pos[0],
-          y,
-          updatedStagedPiece.pos[2],
-        ] as Position3;
+        const { position, valid } = snapAndValidate(
+          state.pieces,
+          updatedStagedPiece,
+          state.basePlate!
+        );
+        updatedStagedPiece.pos = position;
         updatedStagedPiece.isValidPosition = valid;
 
         return {
@@ -91,21 +95,22 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
 
     stageNewPiece: (pos = [0, 0]) =>
       set((state) => {
+        if (!state.newStagedPieceId) return {};
         const key = state.nextKey;
         const newStagedPiece: StagedPiece = {
-          key,
+          key: key.toString(),
           pieceId: state.newStagedPieceId!,
           pos: [pos[0], 0, pos[1]] as Position3,
           rot: [0, 0, 0] as Position3,
           isNew: true,
           isValidPosition: true,
         };
-        const { y, valid } = snapAndValidate(state.pieces, newStagedPiece);
-        newStagedPiece.pos = [
-          newStagedPiece.pos[0],
-          y,
-          newStagedPiece.pos[2],
-        ] as Position3;
+        const { position, valid } = snapAndValidate(
+          state.pieces,
+          newStagedPiece,
+          state.basePlate!
+        );
+        newStagedPiece.pos = position;
         newStagedPiece.isValidPosition = valid;
 
         return {
@@ -114,17 +119,18 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
         };
       }),
 
-    /* 5) stage an existing piece */
     stageExistingPiece: (key: number) =>
       set((state) => {
         if (state.stagedPiece) return {};
-        const pieceToBeStaged = state.pieces.find((p) => p.key === key);
+        const pieceToBeStaged = state.pieces.find(
+          (p) => p.key === key.toString()
+        );
         if (!pieceToBeStaged) return {};
 
         return {
-          pieces: state.pieces.filter((p) => p.key !== key),
+          pieces: state.pieces.filter((p) => p.key !== key.toString()),
           stagedPiece: {
-            key,
+            key: key.toString(),
             pieceId: pieceToBeStaged.pieceId,
             pos: [...pieceToBeStaged.pos] as Position3,
             rot: [...pieceToBeStaged.rot] as Position3,
@@ -138,7 +144,6 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
         };
       }),
 
-    /* 2) move staged piece */
     moveStagedPiece: (dir: Direction) =>
       set((state) => {
         if (!state.stagedPiece) return {};
@@ -153,32 +158,16 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
               (dir === "down" ? step : dir === "up" ? -step : 0),
           ] as Position3,
         };
-        const snap = snapAndValidate(state.pieces, updatedStagedPiece);
-        updatedStagedPiece.pos = [
-          updatedStagedPiece.pos[0],
-          snap.y,
-          updatedStagedPiece.pos[2],
-        ] as Position3;
-        updatedStagedPiece.isValidPosition = snap.valid;
+        const { position, valid } = snapAndValidate(
+          state.pieces,
+          updatedStagedPiece,
+          state.basePlate!
+        );
+        updatedStagedPiece.pos = position;
+        updatedStagedPiece.isValidPosition = valid;
         return {
           stagedPiece: updatedStagedPiece,
         };
-      }),
-
-    setStagedPiecePosition: (pos: Position3) =>
-      set((state) => {
-        if (!state.stagedPiece) return {};
-
-        const updatedStagedPiece: StagedPiece = { ...state.stagedPiece, pos };
-        const { y, valid } = snapAndValidate(state.pieces, updatedStagedPiece);
-        updatedStagedPiece.pos = [
-          updatedStagedPiece.pos[0],
-          y,
-          updatedStagedPiece.pos[2],
-        ] as Position3;
-        updatedStagedPiece.isValidPosition = valid;
-
-        return { stagedPiece: updatedStagedPiece };
       }),
 
     rotateStagedPiece: (direction: "left" | "right") =>
@@ -195,12 +184,13 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
             old.rot[2],
           ] as Position3,
         };
-        const snap = snapAndValidate(state.pieces, updatedStagedPiece);
-        updatedStagedPiece.pos = [
-          updatedStagedPiece.pos[0],
-          snap.y,
-          updatedStagedPiece.pos[2],
-        ] as Position3;
+        const { position, valid } = snapAndValidate(
+          state.pieces,
+          updatedStagedPiece,
+          state.basePlate!
+        );
+        updatedStagedPiece.pos = position;
+        updatedStagedPiece.isValidPosition = valid;
         return {
           stagedPiece: updatedStagedPiece,
         };
