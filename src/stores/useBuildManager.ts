@@ -26,7 +26,7 @@ interface SandboxModeActions {
   confirmPlace: (color?: string) => void;
 }
 
-export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
+export const useBuildManager = create<SandboxModeState & SandboxModeActions>(
   (set) => ({
     pieces: [],
     basePlate: null,

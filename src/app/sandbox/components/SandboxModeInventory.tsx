@@ -1,16 +1,16 @@
 "use client";
 
-import { useSandboxMode } from "@/stores/useSandboxMode";
+import { useBuildManager } from "@/stores/useBuildManager";
 import PieceInventory from "@/components/PieceInventory";
 import { getPieceFromId, pieceDetails } from "@/utils/pieceDetails";
 import { DefinedPieceId } from "@/types";
 import { useEffect } from "react";
 
 export default function SandboxModeInventory() {
-  const selectedPieceId = useSandboxMode((s) => s.newStagedPieceId);
-  const setNewPieceId = useSandboxMode((s) => s.setNewPieceId);
-  const setStagedPieceColor = useSandboxMode((s) => s.setStagedPieceColor);
-  const selectedColor = useSandboxMode((s) => s.stagedPieceColor);
+  const selectedPieceId = useBuildManager((s) => s.newStagedPieceId);
+  const setNewPieceId = useBuildManager((s) => s.setNewPieceId);
+  const setStagedPieceColor = useBuildManager((s) => s.setStagedPieceColor);
+  const selectedColor = useBuildManager((s) => s.stagedPieceColor);
 
   // Initialize with first available piece
   useEffect(() => {

@@ -2,31 +2,31 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 
-import { useSandboxMode } from "../../../stores/useSandboxMode";
+import { useBuildManager } from "../../../stores/useBuildManager";
 import { getLegoPiece, getLegoBasePlate } from "../../../components/Lego";
 import { Direction } from "@/types";
 import SceneBuilder from "./SceneBuilder";
 
-export default function SandboxManager() {
+export default function UserBuildBuilder() {
   /* keyboard --------------------------------------------------------- */
   const [, getKeys] = useKeyboardControls();
 
   // Game state
-  const pieces = useSandboxMode((s) => s.pieces);
-  const basePlate = useSandboxMode((s) => s.basePlate);
-  const basePlateRotation = useSandboxMode((s) => s.basePlateRotation);
-  const stagedPiece = useSandboxMode((s) => s.stagedPiece);
-  const stagedPieceColor = useSandboxMode((s) => s.stagedPieceColor);
+  const pieces = useBuildManager((s) => s.pieces);
+  const basePlate = useBuildManager((s) => s.basePlate);
+  const basePlateRotation = useBuildManager((s) => s.basePlateRotation);
+  const stagedPiece = useBuildManager((s) => s.stagedPiece);
+  const stagedPieceColor = useBuildManager((s) => s.stagedPieceColor);
 
   /* game actions ------------------------------------------------------ */
-  const setBasePlate = useSandboxMode((s) => s.setBasePlate);
-  const rotateBasePlate = useSandboxMode((s) => s.rotateBasePlate);
-  const stageNewPiece = useSandboxMode((s) => s.stageNewPiece);
-  const stageExistingPiece = useSandboxMode((s) => s.stageExistingPiece);
-  const unstagePiece = useSandboxMode((s) => s.unstagePiece);
-  const moveStagedPiece = useSandboxMode((s) => s.moveStagedPiece);
-  const rotateStagedPiece = useSandboxMode((s) => s.rotateStagedPiece);
-  const confirmPlace = useSandboxMode((s) => s.confirmPlace);
+  const setBasePlate = useBuildManager((s) => s.setBasePlate);
+  const rotateBasePlate = useBuildManager((s) => s.rotateBasePlate);
+  const stageNewPiece = useBuildManager((s) => s.stageNewPiece);
+  const stageExistingPiece = useBuildManager((s) => s.stageExistingPiece);
+  const unstagePiece = useBuildManager((s) => s.unstagePiece);
+  const moveStagedPiece = useBuildManager((s) => s.moveStagedPiece);
+  const rotateStagedPiece = useBuildManager((s) => s.rotateStagedPiece);
+  const confirmPlace = useBuildManager((s) => s.confirmPlace);
 
   /* prev‑state ref to catch rising edges ----------------------------- */
   const prev = useRef<Record<string, boolean>>({});
@@ -34,7 +34,7 @@ export default function SandboxManager() {
   const MOVE_COOLDOWN = 200; // milliseconds between moves
 
   useEffect(() => {
-    setBasePlate("base-plate-8x3", "#00a651");
+    setBasePlate("base-plate-16x16", "#00a651");
   }, []);
 
   useFrame(() => {
@@ -70,8 +70,6 @@ export default function SandboxManager() {
   });
 
   return (
-    <>
-      <SceneBuilder />
       <group rotation={basePlateRotation}>
         {/* Render base plate */}
         {basePlate &&
@@ -105,6 +103,5 @@ export default function SandboxManager() {
           </group>
         )}
       </group>
-    </>
   );
 }

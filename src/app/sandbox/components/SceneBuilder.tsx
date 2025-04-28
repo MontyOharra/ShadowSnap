@@ -74,7 +74,7 @@ export default function SceneBuilder() {
       <directionalLight
         ref={directionalLightRef}
         position={[0, 8, 20]} // Position light in front of the wall
-        intensity={1.5}
+        intensity={2}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0001}
@@ -88,7 +88,7 @@ export default function SceneBuilder() {
       <directionalLight
         ref={directionalLightRef2}
         position={[20, 8, 0]} // Light position for back wall
-        intensity={1.5}
+        intensity={2}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0001}
@@ -100,7 +100,12 @@ export default function SceneBuilder() {
         target={lightTargetRef2.current || undefined}
       />
       {/* Ambient light for overall scene illumination */}
-      <ambientLight intensity={0.15} />
+      <ambientLight intensity={0.6} />
+      <pointLight
+        position={[10, 25, 10]}
+        intensity={3}
+      />
+      <directionalLight position={[-10, 15, -10]} intensity={0.6} />
     </>
   );
 }

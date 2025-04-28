@@ -1,10 +1,10 @@
 "use client";
 
-import { useSandboxMode } from "@/stores/useSandboxMode";
+import { useBuildManager } from "@/stores/useBuildManager";
 
 export default function BasePlateRotationScrollBar() {
-  const rotateBasePlate = useSandboxMode((s) => s.rotateBasePlate);
-  const basePlateRotation = useSandboxMode((s) => s.basePlateRotation);
+  const rotateBasePlate = useBuildManager((s) => s.rotateBasePlate);
+  const basePlateRotation = useBuildManager((s) => s.basePlateRotation);
   const deg = basePlateRotation ? (basePlateRotation[1] * 180) / Math.PI : 0;
 
   return (

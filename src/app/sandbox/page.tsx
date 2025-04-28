@@ -1,11 +1,30 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { KeyboardControls, OrbitControls } from "@react-three/drei";
-import SandboxManager from "./components/SandboxManager";
+import {
+  KeyboardControls,
+  OrbitControls,
+  PerspectiveCamera,
+} from "@react-three/drei";
 import SandboxModeInventory from "./components/SandboxModeInventory";
 import BasePlateRotationScrollBar from "@/app/sandbox/components/BasePlateRotationScrollBar";
+import UserBuildBuilder from "./components/UserBuildBuilder";
+import SceneBuilder from "./components/SceneBuilder";
+import { useThree } from "@react-three/fiber";
 
+function Camera() {
+  const { set } = useThree();
+  return (
+    <PerspectiveCamera
+      makeDefault
+      position={[15, 13, 20]}
+      fov={50}
+      near={0.1}
+      far={1000}
+      onUpdate={(self) => set({ camera: self })}
+    />
+  );
+}
 export default function SandboxPage() {
   return (
     <div
@@ -22,11 +41,6 @@ export default function SandboxPage() {
           { name: "right", keys: ["ArrowRight", "d"] },
           { name: "up", keys: ["ArrowUp", "w"] },
           { name: "down", keys: ["ArrowDown", "s"] },
-          { name: "rotatePiece", keys: ["q", "Q"] },
-          { name: "toggle1", keys: ["1"] },
-          { name: "toggle2", keys: ["2"] },
-          { name: "toggle3", keys: ["3"] },
-          { name: "toggle4", keys: ["4"] },
           { name: "add", keys: ["p"] },
           { name: "place", keys: ["Enter"] },
           { name: "esc", keys: ["Escape"] },
@@ -34,25 +48,13 @@ export default function SandboxPage() {
           { name: "e", keys: ["e"] },
         ]}
       >
-        <Canvas shadows camera={{ position: [8, 8, 8], fov: 50 }}>
+        <Canvas shadows>
           {/* darker background color */}
           <color attach="background" args={["#303030"]} />
-
-          {/* your build mode pieces + walls */}
-          <SandboxManager/>
-
-          {/* fixed lighting, no longer rotates */}
-          <ambientLight intensity={0.6} />
-          <directionalLight
-            position={[10, 15, 10]}
-            intensity={0.8}
-            castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
-          />
-          <directionalLight position={[-10, 15, -10]} intensity={0.6} />
-
-          <OrbitControls enablePan enableRotate enableZoom />
+          <Camera />
+          <UserBuildBuilder />
+          <SceneBuilder />
+          <OrbitControls target={[3, 1, -5]} />
         </Canvas>
       </KeyboardControls>
 
