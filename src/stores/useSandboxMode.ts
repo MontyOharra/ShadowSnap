@@ -1,21 +1,22 @@
 import { create } from "zustand";
 import { snapAndValidate } from "../utils/stud-utils";
-import { PlacedPiece, StagedPiece, Position3, Direction } from "@/types";
+import { Piece, StagedPiece, Position3, Direction } from "@/types";
 
 interface SandboxModeState {
-  pieces: PlacedPiece[];
+  pieces: Piece[];
+  basePiece: Piece | null;
+  basePieceRotation: Position3;
   stagedPiece: StagedPiece | null;
   newStagedPieceId: string;
   stagedPieceColor: string;
-  ghostValid: boolean;
   nextKey: number;
-  basePlateRotation: Position3;
 }
 
 interface SandboxModeActions {
-  addBasePlate: () => void;
-  rotateBasePlate: (angleRad: number) => void;
-  changeNewPiece: (newType: string, color: string) => void;
+  setBasePiece: (pieceId: string, color: string) => void;
+  rotateBasePiece: (angleRad: number) => void;
+  setNewPieceId: (newPieceId: string) => void;
+  setStagedPieceColor: (color: string) => void;
   stageNewPiece: (pos?: [number, number]) => void;
   stageExistingPiece: (key: number) => void;
   unstagePiece: () => void;
@@ -27,76 +28,88 @@ interface SandboxModeActions {
 export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
   (set) => ({
     pieces: [],
+    basePiece: null,
+    basePieceRotation: [0, 0, 0],
     stagedPiece: null,
     newStagedPieceId: "",
     stagedPieceColor: "#FF0000", // Default to red
-    ghostValid: false,
     nextKey: 1,
-    basePlateRotation: [0, 0, 0],
 
-    addBasePlate: () =>
+    setBasePiece: (pieceId: string, color: string) =>
       set((state) => {
         const key = state.nextKey;
         return {
-          pieces: [
-            {
-              key,
-              pieceId: "base-plate-16x16",
-              pos: [0, 0, 0] as Position3,
-              rot: [0, 0, 0] as Position3,
-              isBasePlate: true,
-            },
-            ...state.pieces,
-          ],
+          basePiece: {
+            key,
+            pieceId: pieceId,
+            pos: [0, 0, 0] as Position3,
+            rot: [0, 0, 0] as Position3,
+            color: color,
+          },
           nextKey: key + 1,
+          pieces: [],
         };
       }),
 
-    rotateBasePlate: (angleRad: number) =>
+    rotateBasePiece: (angleRad: number) =>
       set(() => ({
-        basePlateRotation: [0, angleRad, 0] as Position3,
+        basePieceRotation: [0, angleRad, 0] as Position3,
       })),
 
-    changeNewPiece: (newPieceId: string, newColor: string) =>
+    setNewPieceId: (newPieceId: string) =>
       set((state) => {
+        // If no staged piece, set the new piece id
         if (!state.stagedPiece) return { newStagedPieceId: newPieceId };
+        // If the new piece id is the same as the staged piece id, do nothing
         if (state.newStagedPieceId === newPieceId) return {};
 
-        const updatedPiece: PlacedPiece = {
-          ...state.stagedPiece.piece,
+        // Update the staged piece id
+        const updatedStagedPiece: StagedPiece = {
+          ...state.stagedPiece,
           pieceId: newPieceId,
         };
-        const { y, valid } = snapAndValidate(state.pieces, updatedPiece);
-        updatedPiece.pos = [
-          updatedPiece.pos[0],
+
+        // Validate the new position
+        const { y, valid } = snapAndValidate(state.pieces, updatedStagedPiece);
+        updatedStagedPiece.pos = [
+          updatedStagedPiece.pos[0],
           y,
-          updatedPiece.pos[2],
+          updatedStagedPiece.pos[2],
         ] as Position3;
+        updatedStagedPiece.isValidPosition = valid;
+
         return {
-          stagedPiece: { ...state.stagedPiece, piece: updatedPiece },
+          stagedPiece: updatedStagedPiece,
           newStagedPieceId: newPieceId,
-          stagedPieceColor: newColor,
-          ghostValid: valid,
         };
+      }),
+
+    setStagedPieceColor: (color: string) =>
+      set(() => {
+        return { stagedPieceColor: color };
       }),
 
     stageNewPiece: (pos = [0, 0]) =>
       set((state) => {
         const key = state.nextKey;
-        const piece: PlacedPiece = {
+        const newStagedPiece: StagedPiece = {
           key,
           pieceId: state.newStagedPieceId!,
           pos: [pos[0], 0, pos[1]] as Position3,
           rot: [0, 0, 0] as Position3,
-          isBasePlate: false,
+          isNew: true,
+          isValidPosition: true,
         };
-        const { y, valid } = snapAndValidate(state.pieces, piece);
-        piece.pos = [piece.pos[0], y, piece.pos[2]] as Position3;
+        const { y, valid } = snapAndValidate(state.pieces, newStagedPiece);
+        newStagedPiece.pos = [
+          newStagedPiece.pos[0],
+          y,
+          newStagedPiece.pos[2],
+        ] as Position3;
+        newStagedPiece.isValidPosition = valid;
 
         return {
-          pieces: state.pieces,
-          stagedPiece: { piece, isNew: true },
-          ghostValid: valid,
+          stagedPiece: newStagedPiece,
           nextKey: key + 1,
         };
       }),
@@ -107,19 +120,21 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
         if (state.stagedPiece) return {};
         const pieceToBeStaged = state.pieces.find((p) => p.key === key);
         if (!pieceToBeStaged) return {};
-        const { valid } = snapAndValidate(
-          state.pieces.filter((p) => p.key !== key),
-          pieceToBeStaged
-        );
+
         return {
           pieces: state.pieces.filter((p) => p.key !== key),
           stagedPiece: {
-            piece: pieceToBeStaged,
+            key,
+            pieceId: pieceToBeStaged.pieceId,
+            pos: [...pieceToBeStaged.pos] as Position3,
+            rot: [...pieceToBeStaged.rot] as Position3,
+            isValidPosition: true,
             isNew: false,
             oldPos: [...pieceToBeStaged.pos] as Position3,
             oldRot: [...pieceToBeStaged.rot] as Position3,
+            oldColor: pieceToBeStaged.color,
           },
-          ghostValid: valid,
+          stagedPieceColor: pieceToBeStaged.color,
         };
       }),
 
@@ -127,62 +142,83 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
     moveStagedPiece: (dir: Direction) =>
       set((state) => {
         if (!state.stagedPiece) return {};
-        const old = state.stagedPiece.piece;
         const step = 1;
-        const movedPiece: PlacedPiece = {
-          ...old,
+        const updatedStagedPiece: StagedPiece = {
+          ...state.stagedPiece,
           pos: [
-            old.pos[0] + (dir === "left" ? -step : dir === "right" ? step : 0),
-            old.pos[1],
-            old.pos[2] + (dir === "down" ? step : dir === "up" ? -step : 0),
+            state.stagedPiece.pos[0] +
+              (dir === "left" ? -step : dir === "right" ? step : 0),
+            state.stagedPiece.pos[1],
+            state.stagedPiece.pos[2] +
+              (dir === "down" ? step : dir === "up" ? -step : 0),
           ] as Position3,
         };
-        const snap = snapAndValidate(state.pieces, movedPiece);
-        movedPiece.pos = [
-          movedPiece.pos[0],
+        const snap = snapAndValidate(state.pieces, updatedStagedPiece);
+        updatedStagedPiece.pos = [
+          updatedStagedPiece.pos[0],
           snap.y,
-          movedPiece.pos[2],
+          updatedStagedPiece.pos[2],
         ] as Position3;
+        updatedStagedPiece.isValidPosition = snap.valid;
         return {
-          stagedPiece: { ...state.stagedPiece, piece: movedPiece },
-          ghostValid: snap.valid,
+          stagedPiece: updatedStagedPiece,
         };
+      }),
+
+    setStagedPiecePosition: (pos: Position3) =>
+      set((state) => {
+        if (!state.stagedPiece) return {};
+
+        const updatedStagedPiece: StagedPiece = { ...state.stagedPiece, pos };
+        const { y, valid } = snapAndValidate(state.pieces, updatedStagedPiece);
+        updatedStagedPiece.pos = [
+          updatedStagedPiece.pos[0],
+          y,
+          updatedStagedPiece.pos[2],
+        ] as Position3;
+        updatedStagedPiece.isValidPosition = valid;
+
+        return { stagedPiece: updatedStagedPiece };
       }),
 
     rotateStagedPiece: (direction: "left" | "right") =>
       set((state) => {
         if (!state.stagedPiece) return {};
-        const old = state.stagedPiece.piece;
+        const old = state.stagedPiece;
         const rotationAmount =
           direction === "left" ? -Math.PI / 2 : Math.PI / 2;
-        const rotatedPiece: PlacedPiece = {
+        const updatedStagedPiece: StagedPiece = {
           ...old,
           rot: [
             old.rot[0],
             old.rot[1] + rotationAmount,
             old.rot[2],
           ] as Position3,
-          pos: [...old.pos] as Position3,
         };
-        const snap = snapAndValidate(state.pieces, rotatedPiece);
-        rotatedPiece.pos = [
-          rotatedPiece.pos[0],
+        const snap = snapAndValidate(state.pieces, updatedStagedPiece);
+        updatedStagedPiece.pos = [
+          updatedStagedPiece.pos[0],
           snap.y,
-          rotatedPiece.pos[2],
+          updatedStagedPiece.pos[2],
         ] as Position3;
         return {
-          stagedPiece: { ...state.stagedPiece, piece: rotatedPiece },
-          ghostValid: snap.valid,
+          stagedPiece: updatedStagedPiece,
         };
       }),
 
-    confirmPlace: (color?: string) =>
+    confirmPlace: () =>
       set((state) => {
-        if (!state.stagedPiece || !state.ghostValid) return {};
+        if (!state.stagedPiece || !state.stagedPiece.isValidPosition) return {};
+        const newPlacedPiece: Piece = {
+          key: state.stagedPiece.key,
+          pieceId: state.stagedPiece.pieceId,
+          pos: state.stagedPiece.pos,
+          rot: state.stagedPiece.rot,
+          color: state.stagedPieceColor,
+        };
         return {
-          pieces: [...state.pieces, { ...state.stagedPiece.piece, color }],
+          pieces: [...state.pieces, newPlacedPiece],
           stagedPiece: null,
-          ghostValid: false,
         };
       }),
 
@@ -192,21 +228,19 @@ export const useSandboxMode = create<SandboxModeState & SandboxModeActions>(
         if (state.stagedPiece.isNew) {
           return {
             stagedPiece: null,
-            newStagedPieceId: "",
-            ghostValid: false,
           };
         }
+
+        const oldPiece: Piece = {
+          key: state.stagedPiece.key,
+          pieceId: state.stagedPiece.pieceId,
+          pos: state.stagedPiece.oldPos!,
+          rot: state.stagedPiece.oldRot!,
+          color: state.stagedPiece.oldColor!,
+        };
         return {
-          pieces: [
-            ...state.pieces,
-            {
-              ...state.stagedPiece.piece,
-              pos: state.stagedPiece.oldPos!,
-              rot: state.stagedPiece.oldRot!,
-            },
-          ],
+          pieces: [...state.pieces, oldPiece],
           stagedPiece: null,
-          ghostValid: false,
         };
       }),
   })

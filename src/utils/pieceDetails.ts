@@ -95,7 +95,7 @@ export const pieceDetails: PieceDetail[] = [
 
   {
     pieceId: "base-plate-16x16",
-    type: "plate",
+    type: "base-plate",
     name: "Baseplate",
     geometry: () => {
       return new THREE.BoxGeometry(16, 0.2, 16).translate(0, 0.1, 0);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { KeyboardControls, OrbitControls } from "@react-three/drei";
 import SandboxManager from "./components/SandboxManager";
@@ -8,20 +7,6 @@ import SandboxModeInventory from "./components/SandboxModeInventory";
 import BasePlateRotationScrollBar from "@/app/sandbox/components/BasePlateRotationScrollBar";
 
 export default function SandboxPage() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setMousePosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
   return (
     <div
       style={{
@@ -54,7 +39,7 @@ export default function SandboxPage() {
           <color attach="background" args={["#303030"]} />
 
           {/* your build mode pieces + walls */}
-          <SandboxManager mousePosition={mousePosition} />
+          <SandboxManager/>
 
           {/* fixed lighting, no longer rotates */}
           <ambientLight intensity={0.6} />

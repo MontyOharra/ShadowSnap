@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber";
-import { getLegoPiece } from "../lego/Lego";
+import { getLegoPiece } from "../Lego";
 import { getPieceFromId } from "@/utils/pieceDetails";
 import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";

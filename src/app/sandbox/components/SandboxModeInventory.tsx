@@ -1,13 +1,14 @@
 "use client";
 
 import { useSandboxMode } from "@/stores/useSandboxMode";
-import PieceInventory from "@/components/inventory/PieceInventory";
+import PieceInventory from "@/components/PieceInventory";
 import { getPieceFromId, pieceDetails } from "@/utils/pieceDetails";
 import { DefinedPieceId } from "@/types";
 
 export default function SandboxModeInventory() {
   const selectedPieceId = useSandboxMode((s) => s.newStagedPieceId);
-  const changeNewPiece = useSandboxMode((s) => s.changeNewPiece);
+  const setNewPieceId = useSandboxMode((s) => s.setNewPieceId);
+  const setStagedPieceColor = useSandboxMode((s)   => s.setStagedPieceColor);
   const selectedColor = useSandboxMode((s) => s.stagedPieceColor);
 
   // Create a record with all pieces mapped to Infinity
@@ -21,12 +22,13 @@ export default function SandboxModeInventory() {
 
   const handlePieceSelect = (pieceId: string) => {
     const piece = getPieceFromId(pieceId);
-    changeNewPiece(pieceId, piece.defaultColor);
+    setNewPieceId(pieceId);
+    setStagedPieceColor(piece.defaultColor);
   };
 
   function handleColorChange(color: string) {
     if (selectedPieceId) {
-      changeNewPiece(selectedPieceId, color);
+      setStagedPieceColor(color);
     }
   }
 

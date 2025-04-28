@@ -1,57 +1,26 @@
-import { useRef, useEffect, useCallback, useState } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useRef, useEffect } from "react";
+import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
-import * as THREE from "three";
 
 import { useSandboxMode } from "../../../stores/useSandboxMode";
-import { getLegoPiece } from "../../../components/lego/Lego";
+import { getLegoPiece } from "../../../components/Lego";
 import { Direction } from "@/types";
 import SceneBuilder from "./SceneBuilder";
 
-interface SandboxManagerProps {
-  mousePosition: {
-    x: number;
-    y: number;
-  };
-}
-
-export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
-  const { camera, size, scene } = useThree();
-  const raycaster = useRef(new THREE.Raycaster());
-  const mouse = useRef(new THREE.Vector2());
-  const intersectionPoint = useRef(new THREE.Vector3());
-  const lastMousePosition = useRef({ x: 0, y: 0 });
-  const MOUSE_MOVE_THRESHOLD = 2; // pixels of movement before updating
-  const [spherePosition, setSpherePosition] = useState<
-    [number, number, number]
-  >([0, 0, 0]);
-  const piecesRef = useRef<THREE.Group>(null);
-
-  // Create a memoized material for the sphere
-  const sphereMaterial = useRef(
-    new THREE.MeshPhysicalMaterial({
-      color: "#0088ff",
-      transparent: true,
-      opacity: 0.5,
-      roughness: 0.1,
-      metalness: 0.0,
-    })
-  );
-
+export default function SandboxManager() {
   /* keyboard --------------------------------------------------------- */
   const [, getKeys] = useKeyboardControls();
 
   // Game state
   const pieces = useSandboxMode((s) => s.pieces);
-  const basePlateRotation = useSandboxMode((s) => s.basePlateRotation);
-  const ghostValid = useSandboxMode((s) => s.ghostValid);
+  const basePiece = useSandboxMode((s) => s.basePiece); 
+  const basePieceRotation = useSandboxMode((s) => s.basePieceRotation);
   const stagedPiece = useSandboxMode((s) => s.stagedPiece);
   const stagedPieceColor = useSandboxMode((s) => s.stagedPieceColor);
 
   /* game actions ------------------------------------------------------ */
-  const addBasePlate = useSandboxMode((s) => s.addBasePlate);
-  const rotateBasePlate = useSandboxMode((s) => s.rotateBasePlate);
-  const changeNewPiece = useSandboxMode((s) => s.changeNewPiece);
+  const setBasePiece = useSandboxMode((s) => s.setBasePiece);
+  const rotateBasePiece = useSandboxMode((s) => s.rotateBasePiece);
   const stageNewPiece = useSandboxMode((s) => s.stageNewPiece);
   const stageExistingPiece = useSandboxMode((s) => s.stageExistingPiece);
   const unstagePiece = useSandboxMode((s) => s.unstagePiece);
@@ -64,47 +33,13 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
   const lastMoveTime = useRef(0);
   const MOVE_COOLDOWN = 200; // milliseconds between moves
 
-  // Memoized raycast function
-  const performRaycast = useCallback(() => {
-    // Update mouse position for raycasting
-    mouse.current.x = (mousePosition.x / size.width) * 2 - 1;
-    mouse.current.y = -(mousePosition.y / size.height) * 2 + 1;
-
-    // Update the raycaster
-    raycaster.current.setFromCamera(mouse.current, camera);
-
-    // Find intersections with all pieces
-    const intersects = raycaster.current.intersectObjects(scene.children, true);
-
-    if (intersects.length > 0) {
-      const firstIntersect = intersects[0];
-      setSpherePosition([
-        firstIntersect.point.x,
-        firstIntersect.point.y,
-        firstIntersect.point.z,
-      ]);
-    }
-  }, [camera, mousePosition, size, scene]);
-
   useEffect(() => {
-    addBasePlate();
+    setBasePiece("base-plate-16x16", "#00a651");
   }, []);
 
   useFrame(() => {
     const keys = getKeys(); // current pressed map
     const currentTime = Date.now();
-
-    // Only update raycast if mouse has moved significantly
-    const mouseMoved =
-      Math.abs(mousePosition.x - lastMousePosition.current.x) >
-        MOUSE_MOVE_THRESHOLD ||
-      Math.abs(mousePosition.y - lastMousePosition.current.y) >
-        MOUSE_MOVE_THRESHOLD;
-
-    if (mouseMoved) {
-      performRaycast();
-      lastMousePosition.current = { ...mousePosition };
-    }
 
     /* helper to run cb on first frame key is down -------------------- */
     function onPress(name: string, cb: () => void) {
@@ -124,14 +59,10 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
     onMove("up", () => moveStagedPiece("up"));
     onMove("down", () => moveStagedPiece("down"));
 
-    onPress("toggle1", () => changeNewPiece("brick-1x1x1", stagedPieceColor));
-    onPress("toggle2", () => changeNewPiece("brick-2x2x1", stagedPieceColor));
-    onPress("toggle3", () => changeNewPiece("brick-3x3x.5", stagedPieceColor));
-    onPress("toggle4", () => changeNewPiece("slant-1", stagedPieceColor));
     onPress("add", () => stageNewPiece([0, 0]));
     onPress("place", () => confirmPlace(stagedPieceColor));
-    onPress("esc", () => unstagePiece());
-    onPress("rotateBaseplate", () => rotateBasePlate(1));
+    onPress("esc", () => unstagePiece());   
+    onPress("rotateBaseplate", () => rotateBasePiece(1));
     onPress("q", () => rotateStagedPiece("left"));
     onPress("e", () => rotateStagedPiece("right"));
 
@@ -141,15 +72,23 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
   return (
     <>
       <SceneBuilder />
-      <group rotation={basePlateRotation} ref={piecesRef}>
+      <group rotation={basePieceRotation}>
+        {/* Render base plate */}
+        {basePiece && getLegoPiece(basePiece.pieceId, "base", {
+          position: basePiece.pos,
+          rotation: basePiece.rot,
+          color: basePiece.color,
+        })}
+
         {/* Render placed pieces */}
         {pieces.map((p) => {
+          const isBasePlate = p.pieceId === "base-plate-16x16";
           const props = {
             position: p.pos,
             rotation: p.rot,
             staged: false,
-            color: p.isBasePlate ? "#00a651" : p.color,
-            onClick: p.isBasePlate
+            color: isBasePlate ? "#00a651" : p.color,
+            onClick: isBasePlate
               ? undefined
               : () => stageExistingPiece(p.key),
           };
@@ -158,20 +97,15 @@ export default function SandboxManager({ mousePosition }: SandboxManagerProps) {
 
         {stagedPiece && (
           <group>
-            {getLegoPiece(stagedPiece.piece.pieceId, "staged", {
-              position: stagedPiece.piece.pos,
-              rotation: stagedPiece.piece.rot,
+            {getLegoPiece(stagedPiece.pieceId, "staged", {
+              position: stagedPiece.pos,
+              rotation: stagedPiece.rot,
               staged: true,
-              isValidPosition: ghostValid,
+              isValidPosition: stagedPiece.isValidPosition,
               onClick: undefined,
             })}
           </group>
         )}
-
-        {/* Mouse position indicator sphere */}
-        <mesh position={spherePosition} material={sphereMaterial.current}>
-          <sphereGeometry args={[0.5, 32, 32]} />
-        </mesh>
       </group>
     </>
   );

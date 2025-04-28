@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export type Position3 = [number, number, number];
 export type Direction = "left" | "right" | "up" | "down";
-export type DefinedPieceType = "brick" | "plate" | "slant";
+export type DefinedPieceType = "brick" | "base-plate" | "slant";
 export type DefinedPieceId =
   | "brick-1x1x1"
   | "brick-2x2x1"
@@ -30,20 +30,24 @@ export interface PieceDetail {
 }
 
 /** A placed piece in the world */
-export interface PlacedPiece {
-  key: number;
+export interface Piece {
+  key: string;
   pieceId: string;
   pos: Position3;
   rot: Position3;
-  isBasePlate?: boolean;
   color?: string;
 }
 
 export interface StagedPiece {
-  piece: PlacedPiece;
-  isNew: boolean;
+  key: string;
+  pieceId: string;
+  pos: Position3;
+  rot: Position3;
+  isNew?: boolean;
+  isValidPosition?: boolean;
   oldPos?: Position3;
   oldRot?: Position3;
+  oldColor?: string;
 }
 
 /** A stud or hole in world space */
