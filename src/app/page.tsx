@@ -8,7 +8,9 @@ export default function Home() {
     <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
       <div className="flex flex-col items-center space-y-12">
         {/* Logo */}
-        <h1 className="text-5xl font-bold text-gray-800">ShadowSnap</h1>
+        <h1 className="text-6xl font-bold text-blue-800 tracking-wide drop-shadow-lg">
+          ShadowSnap
+        </h1>
 
         {/* Menu Buttons */}
         <div className="flex flex-col space-y-4">

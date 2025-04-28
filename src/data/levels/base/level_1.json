@@ -1,0 +1,26 @@
+{
+  "id": "level_1",
+  "name": "Level 1",
+  "createdBy": "John Doe",
+  "pieces": [
+    {
+      "pieceId": "brick-2x2x1",
+      "color": "#000000",
+      "position": [0, 0.2, 0],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "pieceId": "brick-2x2x1",
+      "color": "#000000",
+      "position": [0, 1.2, 0],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "pieceId": "brick-3x3x.5",
+      "color": "#000000",
+      "position": [0.5, 0.2, 6.5],
+      "rotation": [0, 0, 0]
+    }
+    
+  ]
+}

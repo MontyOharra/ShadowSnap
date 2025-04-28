@@ -8,9 +8,7 @@ export type DefinedPieceId =
   | "brick-2x2x1"
   | "brick-3x3x.5"
   | "slant-1";
-export type DefinedBasePlateId = 
-  | "base-plate-16x16"
-  | "base-plate-8x3";
+export type DefinedBasePlateId = "base-plate-16x16" | "base-plate-8x3";
 
 export interface PieceDetail {
   pieceId: DefinedPieceId;
@@ -62,6 +60,7 @@ export interface StagedPiece {
   oldPos?: Position3;
   oldRot?: Position3;
   oldColor?: string;
+  color: string;
 }
 
 /** A stud or hole in world space */

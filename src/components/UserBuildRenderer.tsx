@@ -1,32 +1,39 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 
-import { useBuildManager } from "../../../stores/useBuildManager";
-import { getLegoPiece, getLegoBasePlate } from "../../../components/Lego";
+import { useBuildManager } from "../stores/useBuildManager";
+import { getLegoPiece } from "./Lego";
 import { Direction } from "@/types";
-import SceneBuilder from "./SceneBuilder";
+import { loadLevelData, transformLevelData } from "@/utils/dataUtils";
+import { useBasePlateStore } from "@/stores/useBasePlateStore";
 
-export default function UserBuildBuilder() {
+interface UserBuildRendererProps {
+  levelFile?: File;
+}
+
+export default function UserBuildRenderer({
+  levelFile,
+}: UserBuildRendererProps) {
+  const [isLevelLoaded, setIsLevelLoaded] = useState(false);
+
   /* keyboard --------------------------------------------------------- */
   const [, getKeys] = useKeyboardControls();
 
   // Game state
   const pieces = useBuildManager((s) => s.pieces);
-  const basePlate = useBuildManager((s) => s.basePlate);
-  const basePlateRotation = useBuildManager((s) => s.basePlateRotation);
+  const basePlateRotation = useBasePlateStore((s) => s.rotation);
   const stagedPiece = useBuildManager((s) => s.stagedPiece);
-  const stagedPieceColor = useBuildManager((s) => s.stagedPieceColor);
 
   /* game actions ------------------------------------------------------ */
-  const setBasePlate = useBuildManager((s) => s.setBasePlate);
-  const rotateBasePlate = useBuildManager((s) => s.rotateBasePlate);
   const stageNewPiece = useBuildManager((s) => s.stageNewPiece);
   const stageExistingPiece = useBuildManager((s) => s.stageExistingPiece);
   const unstagePiece = useBuildManager((s) => s.unstagePiece);
   const moveStagedPiece = useBuildManager((s) => s.moveStagedPiece);
   const rotateStagedPiece = useBuildManager((s) => s.rotateStagedPiece);
   const confirmPlace = useBuildManager((s) => s.confirmPlace);
+  const removePiece = useBuildManager((s) => s.removePiece);
+  const importLevel = useBuildManager((s) => s.import);
 
   /* prev‑state ref to catch rising edges ----------------------------- */
   const prev = useRef<Record<string, boolean>>({});
@@ -34,8 +41,24 @@ export default function UserBuildBuilder() {
   const MOVE_COOLDOWN = 200; // milliseconds between moves
 
   useEffect(() => {
-    setBasePlate("base-plate-16x16", "#00a651");
-  }, []);
+    if (!isLevelLoaded) {
+      const loadLevel = async () => {
+        try {
+          let levelData;
+          if (levelFile) {
+            levelData = await loadLevelData(levelFile);
+            const transformedData = transformLevelData(levelData);
+            importLevel(transformedData);
+            setIsLevelLoaded(true);
+          }
+        } catch (error) {
+          console.error("Failed to load level:", error);
+          // Handle error appropriately (e.g., show error message to user)
+        }
+      };
+      loadLevel();
+    }
+  }, [isLevelLoaded, levelFile, importLevel]);
 
   useFrame(() => {
     const keys = getKeys(); // current pressed map
@@ -60,48 +83,43 @@ export default function UserBuildBuilder() {
     onMove("down", () => moveStagedPiece("down"));
 
     onPress("add", () => stageNewPiece([0, 0]));
-    onPress("place", () => confirmPlace(stagedPieceColor));
+    onPress("place", () => confirmPlace());
     onPress("esc", () => unstagePiece());
-    onPress("rotateBaseplate", () => rotateBasePlate(1));
     onPress("q", () => rotateStagedPiece("left"));
     onPress("e", () => rotateStagedPiece("right"));
+    onPress("delete", () => removePiece());
 
     prev.current = keys;
   });
 
   return (
-      <group rotation={basePlateRotation}>
-        {/* Render base plate */}
-        {basePlate &&
-          getLegoBasePlate(basePlate.pieceId, basePlate.key, {
-            position: basePlate.pos,
-            rotation: basePlate.rot,
-            color: basePlate.color,
+    <group rotation={basePlateRotation}>
+      {/* Render base plate */}
+
+
+      {/* Render placed pieces */}
+      {pieces.map((p) => {
+        const props = {
+          position: p.pos,
+          rotation: p.rot,
+          staged: false,
+          color: p.color,
+          onClick: () => stageExistingPiece(parseInt(p.key)),
+        };
+        return getLegoPiece(p.pieceId, p.key.toString(), props);
+      })}
+
+      {stagedPiece && (
+        <group>
+          {getLegoPiece(stagedPiece.pieceId, "staged", {
+            position: stagedPiece.pos,
+            rotation: stagedPiece.rot,
+            staged: true,
+            isValidPosition: stagedPiece.isValidPosition,
+            onClick: undefined,
           })}
-
-        {/* Render placed pieces */}
-        {pieces.map((p) => {
-          const props = {
-            position: p.pos,
-            rotation: p.rot,
-            staged: false,
-            color: p.color,
-            onClick: () => stageExistingPiece(parseInt(p.key)),
-          };
-          return getLegoPiece(p.pieceId, p.key.toString(), props);
-        })}
-
-        {stagedPiece && (
-          <group>
-            {getLegoPiece(stagedPiece.pieceId, "staged", {
-              position: stagedPiece.pos,
-              rotation: stagedPiece.rot,
-              staged: true,
-              isValidPosition: stagedPiece.isValidPosition,
-              onClick: undefined,
-            })}
-          </group>
-        )}
-      </group>
+        </group>
+      )}
+    </group>
   );
 }

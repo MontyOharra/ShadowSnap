@@ -9,14 +9,16 @@ import {
   getLegoPieceGhostMaterial,
   getLegoPiecePlacedMaterial,
   getBasePlateFromId,
+  getLegoPieceInvisibleMaterial,
 } from "@/utils/legoUtils";
-import { getPieceFromId } from "@/utils/pieceDetails";
+import { getPieceFromId } from "@/data/pieceDetails";
 
 type LegoProps = {
   baseGeometry: THREE.BufferGeometry;
   topStudPositions?: [number, number, number][];
   bottomStudPositions?: [number, number, number][];
   staged?: boolean;
+  invisible?: boolean;
   isValidPosition?: boolean;
   color?: string;
   solidMaterialProps?: THREE.MeshPhysicalMaterialParameters;
@@ -27,6 +29,7 @@ export default function Lego({
   topStudPositions = [],
   bottomStudPositions = [],
   staged = false,
+  invisible = false,
   isValidPosition = true,
   color = "#ffffff",
   ...groupProps
@@ -79,6 +82,7 @@ export default function Lego({
   let material = solidMaterial;
   if (staged && isValidPosition) material = validGhostMaterial;
   if (staged && !isValidPosition) material = invalidGhostMaterial;
+  if (invisible) material = getLegoPieceInvisibleMaterial();
 
   return (
     <group {...groupProps}>

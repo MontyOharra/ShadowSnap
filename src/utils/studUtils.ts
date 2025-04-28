@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { getPieceFromId } from "./pieceDetails";
-import { getBasePlateFromId } from "./basePlateDetails";
+import { getPieceFromId } from "../data/pieceDetails";
+import { getBasePlateFromId } from "../data/basePlateDetails";
 import { Piece, StudWorld, Position3, StagedPiece, BasePlate } from "@/types";
 import { PieceDetail } from "@/types";
 
@@ -71,6 +71,22 @@ export function getPieceStudCoords(
     };
   });
 }
+
+export function isStudUnderPieces(
+  piece: Piece,
+  allPieces: Piece[],
+): boolean {
+  const bottomStuds: Position3[] = [];
+  [...allPieces].forEach((p) =>
+    getPieceStudCoords(p, "bottom").forEach((s) => {
+      bottomStuds.push([s.x, s.y, s.z]);
+    })
+  );
+  const topStuds = getPieceStudCoords(piece, "top");
+
+  return bottomStuds.some((s) => topStuds.some((t) => t.x === s[0] && t.y === s[1] && t.z === s[2]));
+}
+
 // ------------------------------------------------------------------
 // Given placed pieces + a candidate, return { x, y, z, valid }
 // ------------------------------------------------------------------

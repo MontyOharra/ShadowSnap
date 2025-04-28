@@ -1,40 +1,77 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { pieceDetails } from "@/utils/pieceDetails";
+import { pieceDetails } from "@/data/pieceDetails";
 import PieceSnapshot from "@/components/inventory/PieceSnapshot";
 import ColorPicker from "@/components/inventory/ColorPicker";
-import { DefinedPieceType, DefinedPieceId } from "@/types";
-import { getPieceFromId } from "@/utils/pieceDetails";
+import { DefinedPieceType } from "@/types";
+import { useInventoryManager } from "@/stores/useInventoryManager";
 
-interface PieceInventoryProps {
-  selectedPieceType: string | null;
-  onPieceSelect: (pieceId: string) => void;
-  getPieceCount: (pieceId: string) => number | "∞";
-  title?: string;
-  selectedColor: string;
-  onColorChange: (color: string) => void;
-  pieces: Record<DefinedPieceId, number>;
-}
-
-export default function PieceInventory({
-  selectedPieceType,
-  onPieceSelect,
-  getPieceCount,
-  selectedColor,
-  onColorChange,
-  pieces,
-}: PieceInventoryProps) {
+export default function PieceInventory() {
   const [filter, setFilter] = useState<DefinedPieceType | "">("");
 
+  // Get state from stores
+  const selectedPieceId = useInventoryManager((s) => s.selectedPieceId);
+  const setNewPieceId = useInventoryManager((s) => s.setSelectedPieceId);
+  const setStagedPieceColor = useInventoryManager(
+    (s) => s.setSelectedPieceColor
+  );
+  const selectedColor = useInventoryManager((s) => s.selectedPieceColor);
+  const getPieceCount = useInventoryManager((s) => s.getPieceCount);
+  const pieces = useInventoryManager((s) => s.inventory);
+
+  // Initialize with first available piece
+  useEffect(() => {
+    if (!selectedPieceId && pieceDetails.length > 0) {
+      const firstAvailablePiece = pieceDetails.find(
+        (piece) => getPieceCount(piece.pieceId) !== 0
+      );
+      if (firstAvailablePiece) {
+        setNewPieceId(firstAvailablePiece.pieceId);
+        setStagedPieceColor(firstAvailablePiece.defaultColor);
+      }
+    }
+  }, [selectedPieceId, setNewPieceId, setStagedPieceColor, getPieceCount]);
+
+  // Watch for piece count changes and update selected piece if needed
+  useEffect(() => {
+    if (selectedPieceId) {
+      const count = getPieceCount(selectedPieceId);
+      if (count === 0) {
+        // Find the next available piece
+        const nextAvailablePiece = pieceDetails.find(
+          (piece) => getPieceCount(piece.pieceId) !== 0
+        );
+
+        if (nextAvailablePiece) {
+          setNewPieceId(nextAvailablePiece.pieceId);
+          setStagedPieceColor(nextAvailablePiece.defaultColor);
+        } else {
+          // No pieces available, clear selection
+          setNewPieceId(null);
+        }
+      }
+    }
+  }, [selectedPieceId, getPieceCount, setNewPieceId, setStagedPieceColor]);
+
   const filteredPieces = pieceDetails.filter(
-    (piece) =>
-      (!filter || piece.type === filter) && pieces[piece.pieceId] !== undefined
+    (piece) => (!filter || piece.type === filter) && pieces.has(piece.pieceId)
   );
 
-  useEffect(() => {
-    getPieceFromId(Object.keys(pieces)[0]);
-  }, [pieces]);
+  const handlePieceSelect = (pieceId: string) => {
+    const piece = pieceDetails.find((p) => p.pieceId === pieceId);
+    const count = getPieceCount(pieceId);
+    if (piece && count !== 0) {
+      setNewPieceId(pieceId);
+      setStagedPieceColor(piece.defaultColor);
+    }
+  };
+
+  function handleColorChange(color: string) {
+    if (selectedPieceId) {
+      setStagedPieceColor(color);
+    }
+  }
 
   return (
     <div
@@ -95,56 +132,65 @@ export default function PieceInventory({
           gridTemplateColumns: "repeat(2, 1fr)",
           gap: "16px",
           overflowY: "auto",
-          maxHeight: "calc(100vh - 300px)", // Adjusted to account for color picker
-          padding: "4px", // Space for scrollbar
+          maxHeight: "calc(100vh - 300px)",
+          padding: "4px",
         }}
       >
-        {filteredPieces.map((piece) => (
-          <div
-            key={piece.pieceId}
-            onClick={() => onPieceSelect(piece.pieceId)}
-            style={{
-              cursor: "pointer",
-              transition: "transform 0.2s ease",
-              position: "relative",
-              borderRadius: "8px",
-              overflow: "hidden",
-              border:
-                selectedPieceType === piece.pieceId
-                  ? "2px solid #007AFF"
-                  : "2px solid #FFFFFF",
-            }}
-          >
-            <PieceSnapshot
-              piece={piece}
-              isSelected={selectedPieceType === piece.pieceId}
-            />
-            {/* Piece Count Indicator */}
+        {filteredPieces.map((piece) => {
+          const count = getPieceCount(piece.pieceId);
+          const isDisabled = count === 0;
+          return (
             <div
+              key={piece.pieceId}
+              onClick={() => !isDisabled && handlePieceSelect(piece.pieceId)}
               style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                backgroundColor: "rgb(0, 0, 0)",
-                color: "white",
-                padding: "4px 8px",
-                borderBottomLeftRadius: "8px",
-                fontSize: "16px",
-                fontWeight: "bold",
-                minWidth: "32px",
-                textAlign: "center",
+                cursor: isDisabled ? "not-allowed" : "pointer",
+                transition: "transform 0.2s ease",
+                position: "relative",
+                borderRadius: "8px",
+                overflow: "hidden",
+                border:
+                  selectedPieceId === piece.pieceId
+                    ? "2px solid #007AFF"
+                    : "2px solid #FFFFFF",
+                opacity: isDisabled ? 0.5 : 1,
+                filter: isDisabled ? "grayscale(100%)" : "none",
               }}
             >
-              {getPieceCount(piece.pieceId)}
+              <PieceSnapshot
+                piece={piece}
+                isSelected={selectedPieceId === piece.pieceId}
+                isDisabled={isDisabled}
+              />
+              {/* Piece Count Indicator */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  backgroundColor: isDisabled
+                    ? "rgb(100, 100, 100)"
+                    : "rgb(0, 0, 0)",
+                  color: "white",
+                  padding: "4px 8px",
+                  borderBottomLeftRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  minWidth: "32px",
+                  textAlign: "center",
+                }}
+              >
+                {count === "infinity" ? "∞" : count}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Color Picker */}
       <ColorPicker
-        selectedColor={selectedColor}
-        onColorChange={onColorChange}
+        selectedColor={selectedColor ?? "#ffffff"}
+        onColorChange={handleColorChange}
       />
     </div>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import { useBuildManager } from "@/stores/useBuildManager";
+import { useBasePlateStore } from "@/stores/useBasePlateStore";
 
 export default function BasePlateRotationScrollBar() {
-  const rotateBasePlate = useBuildManager((s) => s.rotateBasePlate);
-  const basePlateRotation = useBuildManager((s) => s.basePlateRotation);
+  const rotateBasePlate = useBasePlateStore((s) => s.rotateBasePlate);
+  const basePlateRotation = useBasePlateStore((s) => s.rotation);
   const deg = basePlateRotation ? (basePlateRotation[1] * 180) / Math.PI : 0;
 
   return (

@@ -6,10 +6,12 @@ import PiecePreview from "./PiecePreview";
 type PieceSnapshotProps = {
   piece: PieceDetail;
   isSelected?: boolean;
+  isDisabled?: boolean;
 };
 
 export default function PieceSnapshot({
   piece,
+  isDisabled = false,
 }: PieceSnapshotProps) {
   return (
     <div
@@ -23,6 +25,7 @@ export default function PieceSnapshot({
         fontFamily: "var(--font-geist-sans)",
         transition: "all 0.2s ease",
         position: "relative",
+        opacity: isDisabled ? 0.5 : 1,
       }}
     >
       {/* Piece preview */}
@@ -33,9 +36,14 @@ export default function PieceSnapshot({
           position: "relative",
           overflow: "hidden",
           borderRadius: "12px",
+          filter: isDisabled ? "grayscale(100%)" : "none",
         }}
       >
-        <PiecePreview pieceId={piece.pieceId} color={piece.defaultColor} />
+        <PiecePreview
+          pieceId={piece.pieceId}
+          color={piece.defaultColor}
+          isDisabled={isDisabled}
+        />
       </div>
 
       {/* Piece name display */}
@@ -48,6 +56,7 @@ export default function PieceSnapshot({
           fontSize: "14px",
           fontWeight: "500",
           fontFamily: "inherit",
+          color: isDisabled ? "#999" : "inherit",
         }}
       >
         {piece.name}

@@ -1,0 +1,13 @@
+{
+  "id": "level_2",
+  "name": "Level 2",
+  "createdBy": "Test User",
+  "pieces": [
+    {
+      "pieceId": "brick-1x1x1",
+      "color": "#FF0000",
+      "position": [1, 0, 0],
+      "rotation": [0, 0, 0]
+    }
+  ]
+}

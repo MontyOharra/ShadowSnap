@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 
-export default function SceneBuilder() {
+export default function SceneRenderer() {
   const { scene } = useThree();
   const wallsRef = useRef<THREE.Group | null>(null);
   const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);

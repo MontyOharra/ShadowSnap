@@ -2,8 +2,9 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 import { BasePlateDetail, PieceDetail, Position3 } from "@/types";
-import { pieceDetails } from "./pieceDetails";
-import { basePlateDetails } from "./basePlateDetails";
+import { pieceDetails } from "../data/pieceDetails";
+import { basePlateDetails } from "../data/basePlateDetails";
+import { usePlayer } from "@/stores/usePlayer";
 
 export const unitsPerStud = 1; // global grid size
 export const studRadius = 0.28;
@@ -12,6 +13,7 @@ export const studHeight = 0.175;
 export function getLegoPieceGeomWithStuds(
   baseGeometry: THREE.BufferGeometry,
   topStudPositions: Position3[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   bottomStudPositions: Position3[] = []
 ): THREE.BufferGeometry {
   /* 
@@ -24,18 +26,33 @@ export function getLegoPieceGeomWithStuds(
       */
   const geom: THREE.BufferGeometry = baseGeometry.clone().toNonIndexed();
   const studGeoms: THREE.BufferGeometry[] = [];
-  topStudPositions.forEach((pos: Position3) => {
-    studGeoms.push(
-      new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 16)
+  const player = usePlayer.getState();
+
+  let studQuality = 12;
+  if (player.settings.quality === "low") {
+    studQuality = 4;
+  } else if (player.settings.quality === "normal") {
+    studQuality = 12;
+  } else if (player.settings.quality === "high") {
+    studQuality = 24;
+  } else if (player.settings.quality === "ultra") {
+    studQuality = 48;
+  }
+
+  if (player.settings.quality === "normal") {
+    topStudPositions.forEach((pos: Position3) => {
+      studGeoms.push(
+        new THREE.CylinderGeometry(studRadius, studRadius, studHeight, studQuality)
         .toNonIndexed()
         .translate(
           pos[0] * unitsPerStud,
           pos[1] + studHeight / 2,
           pos[2] * unitsPerStud
         )
-    );
-  });
-  
+      );
+    });
+  }
+
   // TODO:
   // add bottom stud functionality
 
@@ -82,7 +99,15 @@ export function getLegoPieceGhostMaterial(
   });
 }
 
-export function getPieceFromId(pieceId: string): PieceDetail  {
+export function getLegoPieceInvisibleMaterial(): THREE.MeshPhysicalMaterial {
+  return new THREE.MeshPhysicalMaterial({
+    color: "#000000",
+    transparent: true,
+    opacity: 0.0,
+  });
+}
+
+export function getPieceFromId(pieceId: string): PieceDetail {
   const pieceDetail = pieceDetails.find((piece) => piece.pieceId === pieceId);
   if (!pieceDetail) {
     throw new Error(`Piece id ${pieceId} not found`);
@@ -91,9 +116,12 @@ export function getPieceFromId(pieceId: string): PieceDetail  {
 }
 
 export function getBasePlateFromId(pieceId: string): BasePlateDetail {
-  const pieceDetail = basePlateDetails.find((piece) => piece.pieceId === pieceId);
+  const pieceDetail = basePlateDetails.find(
+    (piece) => piece.pieceId === pieceId
+  );
   if (!pieceDetail) {
     throw new Error(`Piece id ${pieceId} not found`);
   }
   return pieceDetail;
 }
+

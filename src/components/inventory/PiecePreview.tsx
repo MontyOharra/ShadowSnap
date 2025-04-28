@@ -1,14 +1,20 @@
 import { Canvas } from "@react-three/fiber";
 import { getLegoPiece } from "../Lego";
-import { getPieceFromId } from "@/utils/pieceDetails";
+import { getPieceFromId } from "@/data/pieceDetails";
 import * as THREE from "three";
 import { OrbitControls } from "@react-three/drei";
+
 interface PiecePreviewProps {
   pieceId: string;
   color?: string;
+  isDisabled?: boolean;
 }
 
-export default function PiecePreview({ pieceId, color }: PiecePreviewProps) {
+export default function PiecePreview({
+  pieceId,
+  color,
+  isDisabled = false,
+}: PiecePreviewProps) {
   // Get piece details to calculate dimensions
   const piece = getPieceFromId(pieceId);
   const geometry = piece.geometry();
@@ -29,6 +35,7 @@ export default function PiecePreview({ pieceId, color }: PiecePreviewProps) {
         height: "100%",
         position: "relative",
         overflow: "hidden",
+        pointerEvents: isDisabled ? "none" : "auto",
       }}
     >
       <Canvas
@@ -57,7 +64,7 @@ export default function PiecePreview({ pieceId, color }: PiecePreviewProps) {
         <directionalLight position={[0, 0, -15]} intensity={0.3} />
         {/* Ambient light for overall illumination */}
         <ambientLight intensity={0.3} />
-        <OrbitControls target={[0, 1, 0]} />
+        <OrbitControls target={[0, 1, 0]} enabled={!isDisabled} />
         {getLegoPiece(pieceId, "preview", {
           position: [0, 0, 0],
           rotation: [0, 0, 0],
