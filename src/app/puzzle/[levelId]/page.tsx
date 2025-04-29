@@ -8,8 +8,7 @@ import TargetBuildRenderer from "@/components/TargetBuildRenderer";
 import PieceInventory from "@/components/PieceInventory";
 import SceneCamera from "@/components/SceneCamera";
 import { useParams } from "next/navigation";
-import level1 from "@/data/levels/base/level_1.json"; // Replace with dynamic import if needed
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import SceneBuilder from "@/components/SceneRenderer";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 import BasePlateRenderer from "@/components/BasePlateRenderer";
@@ -17,47 +16,41 @@ import { transformLevelData } from "@/utils/dataUtils";
 import SettingsButton from "@/components/SettingsButton";
 import ImportLevelsButton from "@/components/ImportLevelsButton";
 import Link from "next/link";
-import { useBuildManager } from "@/stores/useBuildManager";
 import { DefinedPieceId } from "@/types";
 
 export default function PuzzleLevel() {
   const params = useParams<{ levelId: string }>();
   const levelId = params.levelId;
   const [mode, setMode] = useState<"user" | "target">("user");
-  const [levelName, setLevelName] = useState<string>("Level");
 
-  // Move the inventory setup logic to useEffect
-  useEffect(() => {
-    // Reset the build manager pieces to an empty array
-    useBuildManager.getState().import({ pieces: [] });
+  useMemo(() => {
+    try {
+      // Extract the level number from the levelId (e.g., "level_2" -> "2")
+      const levelNumber = levelId.split('_')[1];
+      // Dynamically import the level data based on level number
+      const levelData = require(`@/data/levels/base/level_${levelNumber}.json`);
+      const data = transformLevelData(levelData);
 
-    // TODO: Replace with dynamic import based on levelId
-    const data = level1;
-    const transformedData = transformLevelData(level1);
+      useInventoryManager.getState().setAllPiecesToZero();
 
-    // Set the level name from the loaded data
-    setLevelName(data.name || "Level");
-
-    // Reset the inventory
-    useInventoryManager.getState().setAllPiecesToZero();
-
-    // get number of each piece in the level
-    const pieceCounts = transformedData.pieces.reduce(
-      (acc: Record<string, number>, p) => {
+      // get number of each piece in the level
+      const pieceCounts = data.pieces.reduce((acc: Record<string, number>, p) => {
         acc[p.pieceId] = (acc[p.pieceId] || 0) + 1;
         return acc;
-      },
-      {}
-    );
+      }, {});
 
-    // Set inventory to the number of each piece in the level
-    const inventory = useInventoryManager.getState().inventory;
+      console.log(`Loading level ${levelNumber} with pieces:`, pieceCounts);
 
-    Object.keys(pieceCounts).forEach((pieceId) => {
-      // Add type assertion to handle the string to DefinedPieceId conversion
-      inventory.set(pieceId as DefinedPieceId, pieceCounts[pieceId]);
-    });
-  }, []);
+      // Set inventory to the number of each piece in the level
+      const inventory = useInventoryManager.getState().inventory;
+
+      Object.keys(pieceCounts).forEach((pieceId) => {
+        inventory.set(pieceId as DefinedPieceId, pieceCounts[pieceId]);
+      });
+    } catch (error) {
+      console.error(`Error loading level ${levelId}:`, error);
+    }
+  }, [levelId]);
 
   return (
     <div
@@ -78,7 +71,7 @@ export default function PuzzleLevel() {
       </div>
       <div className="absolute top-4 left-4 flex gap-4 z-20">
         <div className="absolute top-4 left-4 flex flex-col gap-4 z-10">
-        <h1 className="text-2xl font-bold text-white mb-2">{levelName}</h1>
+        <h1 className="text-2xl font-bold text-white mb-2">Level {levelId.split('_')[1]}</h1>
         <div className="flex space-x-2">
           <button
               className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${

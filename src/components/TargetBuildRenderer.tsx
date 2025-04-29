@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { transformLevelData } from "@/utils/dataUtils";
 import { getLegoPiece } from "./Lego";
-import level1 from "@/data/levels/base/level_1.json"; // Replace with dynamic import if needed
 import { useBasePlateStore } from "@/stores/useBasePlateStore";
 
 interface LevelData {
@@ -30,17 +29,18 @@ export default function TargetBuildRenderer({
   const basePlateRotation = useBasePlateStore((s) => s.rotation);
 
   useEffect(() => {
-    if (levelData) {
-      // If levelData is provided directly, use that
+    try {
+      // Extract the level number from the levelId (e.g., "level_2" -> "2")
+      const levelNumber = levelId.split('_')[1];
+      // Dynamically import the level data based on level number
+      const levelData = require(`@/data/levels/base/level_${levelNumber}.json`);
       const data = transformLevelData(levelData);
       setPieces(data.pieces);
-    } else if (levelId) {
-      // Otherwise use levelId to load from the base levels
-      // TODO: Replace with dynamic import based on levelId
-      const data = transformLevelData(level1);
-      setPieces(data.pieces);
+      console.log(`Target build loading level ${levelNumber} with ${data.pieces.length} pieces`);
+    } catch (error) {
+      console.error(`Error loading target build for level ${levelId}:`, error);
     }
-  }, [levelId, levelData]);
+  }, [levelId]);
 
   return (
     <group rotation={basePlateRotation}>
