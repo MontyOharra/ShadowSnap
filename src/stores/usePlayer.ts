@@ -4,6 +4,7 @@ interface PlayerState {
   settings: {
     sound: boolean;
     music: boolean;
+    quality: string;
     masterVolume: number;
     musicVolume: number;
     controlsSensitivity: number;
@@ -39,6 +40,7 @@ function getInitialState(): PlayerState {
     settings: { 
       sound: true, 
       music: true, 
+      quality: "normal",
       masterVolume: 100,
       musicVolume: 80,
       controlsSensitivity: 50,

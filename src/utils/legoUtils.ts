@@ -39,19 +39,22 @@ export function getLegoPieceGeomWithStuds(
     studQuality = 48;
   }
 
-  if (player.settings.quality === "normal") {
-    topStudPositions.forEach((pos: Position3) => {
-      studGeoms.push(
-        new THREE.CylinderGeometry(studRadius, studRadius, studHeight, studQuality)
+  topStudPositions.forEach((pos: Position3) => {
+    studGeoms.push(
+      new THREE.CylinderGeometry(
+        studRadius,
+        studRadius,
+        studHeight,
+        studQuality
+      )
         .toNonIndexed()
         .translate(
           pos[0] * unitsPerStud,
           pos[1] + studHeight / 2,
           pos[2] * unitsPerStud
         )
-      );
-    });
-  }
+    );
+  });
 
   // TODO:
   // add bottom stud functionality
@@ -124,4 +127,3 @@ export function getBasePlateFromId(pieceId: string): BasePlateDetail {
   }
   return pieceDetail;
 }
-

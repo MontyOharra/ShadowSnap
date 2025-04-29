@@ -1,0 +1,206 @@
+[33mcommit 59c86b0fb19158c14ccaaca365bb13fb38988d6b[m[33m ([m[1;36mHEAD -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m
+Merge: adc732d cb1cd8c
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Mon Apr 28 21:30:50 2025 -0500
+
+    Merge branch 'new_scene' into dev
+
+[33mcommit adc732d145dc4053d4dc7313e559599d999f4507[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Mon Apr 28 21:27:28 2025 -0500
+
+    fix bugs
+
+[33mcommit cb1cd8c0ea2fc3f57f721105250e3bd39e74e806[m[33m ([m[1;31morigin/scene[m[33m, [m[1;32mnew_scene[m[33m)[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Mon Apr 28 21:04:46 2025 -0500
+
+    added animation to level select
+
+[33mcommit 803937e9de2e5a543a2b566aec576e8fde0ec074[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Mon Apr 28 20:49:48 2025 -0500
+
+    added settings button in level/sandbox
+
+[33mcommit 3a190627fc5e68fb25fe44a8f97b653ba3fe8770[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Mon Apr 28 19:44:20 2025 -0500
+
+    debugged and added piece place/delete sound
+
+[33mcommit 6a9769e2f9c76268c40e54c382b021a8ac58bf71[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Mon Apr 28 18:57:01 2025 -0500
+
+    added background mp3 and script to play it
+
+[33mcommit 5f3bab0e8d7fbdc480c210683cee46ec0aae83b1[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Mon Apr 28 18:30:35 2025 -0500
+
+    added sliders and buttons to settings page
+
+[33mcommit 7fe41bfec191316c758b410e71f1924e2589ad9f[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Mon Apr 28 06:45:37 2025 -0500
+
+    did so much stuff.
+
+[33mcommit 6c023b6b09b5fc60001f278d77413a1fb50ab89d[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Mon Apr 28 01:18:58 2025 -0500
+
+    Rename some files and fix camera positioning
+
+[33mcommit 49e3642c6f612d09941b5c5beb5c2e4c17c248a6[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Mon Apr 28 00:41:36 2025 -0500
+
+    Replace dev branch contents with typescript branch
+
+[33mcommit 0c24b23ff98ef62921028e089d3c083b2009e349[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Thu Apr 24 20:42:38 2025 -0500
+
+    fixed gui invenory bug. pieceDetails now includes type in each object. BuildModeInventory refences this and updates selection as needed. Need to fix keyboard inventory selection bug next.
+
+[33mcommit 559fe4459234cca6a6ab12c52d7e725ccdba0164[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Tue Apr 22 01:14:16 2025 -0500
+
+    Add base of inventory manager functionality
+
+[33mcommit 0f5e41e3b4a9f0a12c94fabef8bafdb276d4a5d3[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Mon Apr 21 02:12:19 2025 -0500
+
+    Refactor and fix some bugs
+
+[33mcommit 3d8465c243d44beeed1a8f76b75656b3cc50e475[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sun Apr 20 20:58:13 2025 -0500
+
+    Temp remove inventory UI and add slider for rotation. Update lighting slightly
+
+[33mcommit ddba3fce715f4db497c3297945f7196ce9a38992[m
+Merge: b0d75f7 d152adb
+Author: capjax <wjdavis28@utexas.edu>
+Date:   Sun Apr 20 16:33:53 2025 -0800
+
+    Merge branch 'dev' of https://github.com/MontyOharra/ShadowSnap into dev
+
+[33mcommit b0d75f716b2405d27442453a4d9ba306cc64af3e[m
+Author: capjax <wjdavis28@utexas.edu>
+Date:   Sun Apr 20 16:24:40 2025 -0800
+
+    fixed light positions, add roations, changed color/mats of pieces
+
+[33mcommit d152adb61f15fe1ada55e7d2af5cc968b605125d[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sun Apr 20 19:21:16 2025 -0500
+
+    Fix piece rotation and add slanted piece
+
+[33mcommit e641258bee2f5f96a4f0f28b2537c38320d00585[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sun Apr 20 17:46:16 2025 -0500
+
+    Implement LegoPiece class with shadow casting
+
+[33mcommit 2034fc641923c2eaa792468fcc8a9c50787c3dc9[m
+Merge: a9c326c 6e1e8f5
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sun Apr 20 17:35:33 2025 -0500
+
+    Merge branch 'lego_piece' into dev
+
+[33mcommit 6e1e8f5c06dacb0324f5694cdd1068530a413709[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sun Apr 20 17:31:19 2025 -0500
+
+    Setup full LegoPiece functionality
+
+[33mcommit a9c326cea28e9f61bf4627d9320cc448fa8ad094[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Sat Apr 19 22:04:40 2025 -0500
+
+    got shadows working
+
+[33mcommit 815df21c469d9a6d9aec43d85dfd26deed6913a1[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sat Apr 19 17:48:07 2025 -0500
+
+    Remove stud cutout functionality
+
+[33mcommit 1212c44c3189c08a3466a90808eb6eeaa3272acc[m
+Author: User <wjdavis28@utexas.edu>
+Date:   Sat Apr 19 17:46:28 2025 -0500
+
+    added walls and light
+
+[33mcommit 77279f6e5c31534a67acd92c8ff34abb3cff152f[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sat Apr 19 17:19:54 2025 -0500
+
+    temp changes
+
+[33mcommit 5cf8a8ceed1b3ae014b093d328ab94b2d552b9e4[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sat Apr 19 17:16:07 2025 -0500
+
+    Add bottom stud cutout rendering
+
+[33mcommit 6931c63da9f0a11c2de88ce3b0bce829e2ae3f8f[m[33m ([m[1;32mmain[m[33m)[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Sat Apr 19 15:38:23 2025 -0500
+
+    Setup basic LegoPiece component functionality
+
+[33mcommit 7fb01b3850e9df4a2c3b723c08af2f20e5de6423[m
+Author: capjax <wjdavis28@utexas.edu>
+Date:   Sat Apr 19 09:38:04 2025 -0800
+
+    created simple baseplate, and loaded into scene
+
+[33mcommit 14c64502b6e16757b4a4af57fc8417f4c4bce2cc[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Thu Apr 17 18:02:00 2025 -0500
+
+    Basic threejs testing setup
+
+[33mcommit 5f23abcee0de3bc03b1b7d635a063d084e2a947f[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Thu Apr 17 17:35:48 2025 -0500
+
+    test
+
+[33mcommit 6f96f65d1749d0734b040ebdd7bfdb689276bd56[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Thu Apr 17 17:30:25 2025 -0500
+
+    add threejs
+
+[33mcommit c94adadf8913a8f7e089c405eb1abe04b3aa4f20[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Thu Apr 17 17:14:54 2025 -0500
+
+    Change to react
+
+[33mcommit cc95867024b675dd4da7d392dc16bd4d4ed24f06[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Thu Apr 17 15:52:50 2025 -0500
+
+    Add three.js to packages
+
+[33mcommit 5b769683466e827be41b36379d694add8e1480f9[m
+Author: Ethan Harrah <em.harrah.business@gmail.com>
+Date:   Thu Apr 17 15:50:00 2025 -0500
+
+    initial vite setup
+
+[33mcommit 84dd28340767607679867a0d2f3db5ee0d54f0b8[m
+Author: MontyOharra <109393994+MontyOharra@users.noreply.github.com>
+Date:   Thu Apr 17 14:57:25 2025 -0500
+
+    Initial commit
