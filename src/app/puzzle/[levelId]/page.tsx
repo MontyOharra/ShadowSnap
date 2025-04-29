@@ -16,6 +16,7 @@ import BasePlateRenderer from "@/components/BasePlateRenderer";
 import { transformLevelData } from "@/utils/dataUtils";
 import SettingsButton from "@/components/SettingsButton";
 import ImportLevelsButton from "@/components/ImportLevelsButton";
+import Link from "next/link";
 import { useBuildManager } from "@/stores/useBuildManager";
 import { DefinedPieceId } from "@/types";
 
@@ -67,29 +68,39 @@ export default function PuzzleLevel() {
         overflow: "hidden",
       }}
     >
-      <div className="absolute top-4 left-4 flex flex-col gap-4 z-10">
+      <div className="absolute bottom-24 right-4 flex gap-4 z-20">
+          <Link
+          href={`/tutorial?returnTo=/puzzle/${levelId}`}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 font-semibold"
+        >
+          Tutorial
+        </Link>
+      </div>
+      <div className="absolute top-4 left-4 flex gap-4 z-20">
+        <div className="absolute top-4 left-4 flex flex-col gap-4 z-10">
         <h1 className="text-2xl font-bold text-white mb-2">{levelName}</h1>
         <div className="flex space-x-2">
           <button
-            className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
-              mode === "user"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600 border border-blue-600"
-            }`}
-            onClick={() => setMode("user")}
-          >
-            User Build
-          </button>
-          <button
-            className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
-              mode === "target"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600 border border-blue-600"
-            }`}
-            onClick={() => setMode("target")}
-          >
-            Target Build
-          </button>
+              className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
+                mode === "user"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-blue-600 border border-blue-600"
+              }`}
+              onClick={() => setMode("user")}
+            >
+              User Build
+            </button>
+            <button
+              className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
+                mode === "target"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-blue-600 border border-blue-600"
+              }`}
+              onClick={() => setMode("target")}
+            >
+              Target Build
+            </button>
+      </div>
           <ImportLevelsButton />
         </div>
       </div>
