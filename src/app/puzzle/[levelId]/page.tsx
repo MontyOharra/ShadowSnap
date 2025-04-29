@@ -9,23 +9,29 @@ import PieceInventory from "@/components/PieceInventory";
 import SceneCamera from "@/components/SceneCamera";
 import { useParams } from "next/navigation";
 import level1 from "@/data/levels/base/level_1.json"; // Replace with dynamic import if needed
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import SceneBuilder from "@/components/SceneRenderer";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 import BasePlateRenderer from "@/components/BasePlateRenderer";
 import { transformLevelData } from "@/utils/dataUtils";
 import SettingsButton from "@/components/SettingsButton";
 import ImportLevelsButton from "@/components/ImportLevelsButton";
+import { useBuildManager } from "@/stores/useBuildManager";
 
 export default function PuzzleLevel() {
   const params = useParams<{ levelId: string }>();
   const levelId = params.levelId;
   const [mode, setMode] = useState<"user" | "target">("user");
 
-  useMemo(() => {
+  // Move the inventory setup logic to useEffect
+  useEffect(() => {
+    // Reset the build manager pieces to an empty array
+    useBuildManager.getState().import({ pieces: [] });
+
     // TODO: Replace with dynamic import based on levelId
     const data = transformLevelData(level1);
 
+    // Reset the inventory
     useInventoryManager.getState().setAllPiecesToZero();
 
     // get number of each piece in the level

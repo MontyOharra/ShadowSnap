@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import LevelCard from "./LevelCard";
+import ImportLevelCard from "./ImportLevelCard";
 import { usePlayer } from "@/stores/usePlayer";
 import { useRouter } from "next/navigation";
 
@@ -18,7 +19,9 @@ export default function LevelCardCarousel({ levels }: LevelCardCarouselProps) {
   const [centerIdx, setCenterIdx] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
-  const total = levels.length;
+
+  // Add one more for the import card
+  const total = levels.length + 1;
   const completedLevels = usePlayer((s) => s.completedLevels);
   const unlockedLevels = usePlayer((s) => s.unlockedLevels);
   const router = useRouter();
@@ -54,6 +57,34 @@ export default function LevelCardCarousel({ levels }: LevelCardCarouselProps) {
     }, 500);
   };
 
+  // Render either a level card or the import card
+  const renderCard = (idx: number) => {
+    // If it's the last index, render the import card
+    if (idx === levels.length) {
+      return (
+        <ImportLevelCard
+          className={`w-full h-full transition-all duration-500 ${
+            idx !== centerIdx ? "opacity-80" : ""
+          }`}
+        />
+      );
+    }
+
+    // Otherwise render a regular level card
+    return (
+      <LevelCard
+        levelName={levels[idx].name}
+        isLocked={!unlockedLevels.includes(levels[idx].id)}
+        isComplete={completedLevels.includes(levels[idx].id)}
+        isStarted={false}
+        className={`w-full h-full transition-all duration-500 ${
+          idx !== centerIdx ? "opacity-80" : ""
+        }`}
+        onClick={() => router.push(`/puzzle/${levels[idx].id}`)}
+      />
+    );
+  };
+
   return (
     <div className="h-[66vh] flex items-center justify-center w-full relative overflow-hidden">
       {/* Left button */}
@@ -68,10 +99,10 @@ export default function LevelCardCarousel({ levels }: LevelCardCarouselProps) {
       </button>
       {/* Cards container */}
       <div className="relative w-full h-full flex items-center justify-center">
-        {indices.map((idx, i) =>
+        {indices.map((idx) =>
           idx < 0 || idx >= total ? null : (
             <div
-              key={levels[idx].id || idx}
+              key={idx >= levels.length ? "import_card" : levels[idx].id || idx}
               className={`absolute w-[22vw] h-[90%] flex items-center justify-center transition-all duration-500 ease-in-out ${
                 idx === centerIdx ? "scale-100 z-10" : "scale-90 z-0"
               }`}
@@ -91,16 +122,7 @@ export default function LevelCardCarousel({ levels }: LevelCardCarouselProps) {
                 marginLeft: idx === centerIdx ? "-11vw" : "-11vw",
               }}
             >
-              <LevelCard
-                levelName={levels[idx].name}
-                isLocked={!unlockedLevels.includes(levels[idx].id)}
-                isComplete={completedLevels.includes(levels[idx].id)}
-                isStarted={false}
-                className={`w-full h-full transition-all duration-500 ${
-                  idx !== centerIdx ? "opacity-80" : ""
-                }`}
-                onClick={() => router.push(`/puzzle/${levels[idx].id}`)}
-              />
+              {renderCard(idx)}
             </div>
           )
         )}

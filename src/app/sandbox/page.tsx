@@ -25,6 +25,10 @@ export default function SandboxPage() {
 
   // Set all pieces to infinity when entering sandbox mode
   useEffect(() => {
+    // Reset the build manager pieces to an empty array
+    useBuildManager.getState().import({ pieces: [] });
+
+    // Set inventory to infinity
     setAllPiecesToInfinity();
   }, [setAllPiecesToInfinity]);
 

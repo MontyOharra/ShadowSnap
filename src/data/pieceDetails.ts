@@ -84,7 +84,7 @@ export const pieceDetails: PieceDetail[] = [
     inventoryIcon: "3x3",
     defaultColor: "#0000FF", // Blue
   },
-
+  /*
   {
     pieceId: "slant-1",
     type: "slant",
@@ -130,6 +130,7 @@ export const pieceDetails: PieceDetail[] = [
     inventoryIcon: "slant-piece",
     defaultColor: "#FFA500", // Orange
   },
+  */
 
   // …add more pieces below …
 ];
