@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { pieceDetails } from "@/data/pieceDetails";
-import PieceSnapshot from "@/components/inventory/PieceSnapshot";
+import PieceSnapshot from "@/components/PieceSnapshot";
 import { DefinedPieceType, DefinedPieceId } from "@/types";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 
