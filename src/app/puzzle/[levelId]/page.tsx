@@ -8,7 +8,6 @@ import TargetBuildRenderer from "@/components/TargetBuildRenderer";
 import PieceInventory from "@/components/PieceInventory";
 import SceneCamera from "@/components/SceneCamera";
 import { useParams } from "next/navigation";
-import level1 from "@/data/levels/base/level_1.json"; // Replace with dynamic import if needed
 import { useMemo, useState } from "react";
 import SceneBuilder from "@/components/SceneRenderer";
 import { useInventoryManager } from "@/stores/useInventoryManager";
@@ -24,26 +23,33 @@ export default function PuzzleLevel() {
   const [mode, setMode] = useState<"user" | "target">("user");
 
   useMemo(() => {
-    // TODO: Replace with dynamic import based on levelId
-    const data = transformLevelData(level1);
+    try {
+      // Extract the level number from the levelId (e.g., "level_2" -> "2")
+      const levelNumber = levelId.split('_')[1];
+      // Dynamically import the level data based on level number
+      const levelData = require(`@/data/levels/base/level_${levelNumber}.json`);
+      const data = transformLevelData(levelData);
 
-    useInventoryManager.getState().setAllPiecesToZero();
+      useInventoryManager.getState().setAllPiecesToZero();
 
-    // get number of each piece in the level
-    const pieceCounts = data.pieces.reduce((acc: Record<string, number>, p) => {
-      acc[p.pieceId] = (acc[p.pieceId] || 0) + 1;
-      return acc;
-    }, {});
+      // get number of each piece in the level
+      const pieceCounts = data.pieces.reduce((acc: Record<string, number>, p) => {
+        acc[p.pieceId] = (acc[p.pieceId] || 0) + 1;
+        return acc;
+      }, {});
 
-    console.log(pieceCounts);
+      console.log(`Loading level ${levelNumber} with pieces:`, pieceCounts);
 
-    // Set inventory to the number of each piece in the level
-    const inventory = useInventoryManager.getState().inventory;
+      // Set inventory to the number of each piece in the level
+      const inventory = useInventoryManager.getState().inventory;
 
-    Object.keys(pieceCounts).forEach((pieceId) => {
-      inventory.set(pieceId, pieceCounts[pieceId]);
-    });
-  }, []);
+      Object.keys(pieceCounts).forEach((pieceId) => {
+        inventory.set(pieceId, pieceCounts[pieceId]);
+      });
+    } catch (error) {
+      console.error(`Error loading level ${levelId}:`, error);
+    }
+  }, [levelId]);
 
   return (
     <div
