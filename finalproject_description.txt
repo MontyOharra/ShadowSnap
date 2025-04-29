@@ -1,0 +1,103 @@
+﻿Jackson Davis        wjd579
+Ethan Harrah                emh3772
+ShadowSnap is a browser-based 3-D puzzle and sandbox builder in which players reconstruct LEGO-style models on a baseplate. Built with Next.js, React, and React-Three-Fiber, the game has smooth interaction and quick level loading.
+Core features
+1. Level selection (or load in your own) - Ethan
+   * Scrollable panels of built-in puzzles
+   * Levels load dynamically from JSON by ID
+   * Drag-and-drop a custom JSON file to play user-created builds
+2. Building interface - Ethan
+   * Real-time brick movement and snapping
+   * Toggle between current build and target model
+   * Orbit, pan, zoom, and a scroll bar for baseplate rotation
+   * Inventory display that tracks remaining pieces
+   * Win detection based on piece positions of current and target build
+3. Custom Geometry - Ethan
+* Created custom lego piece geometries for building in game
+
+
+4. Scene Setup - Jackson
+* Walls for perspective and shadow catching
+* Dynamic lights angled at walls for clear shadows
+* Rotating base for additional help with shadow hints
+5. Audio - Jackson
+   * Continuous background music 
+   * Lego sound effects for select and place actions
+   * Independent sliders for master and music volumes
+6. Settings & tutorial - Jackson
+   * Settings page for graphics quality and audio levels
+   * Preferences stored via Zustand stores
+   * Concise tutorial covering controls and tips
+Tech Stack
+* Frameworks: Next.js (App Router), React (client components)
+* 3-D rendering: React-Three-Fiber with drei helpers; custom geometry loader
+State management: Zustand (useInventoryManager, usePlayer, useBasePlateStore)
+* Data processing: transformLevelData normalizes raw level JSON
+* Dynamic imports: runtime require based on route parameters
+* Styling: Tailwind CSS for responsive, utility-first design
+
+
+Key components
+   * SceneRenderer: Initializes and manages the Three.js WebGL renderer and animation loop, drawing the entire 3D scene on each frame.
+   * SceneCamera: Configures and updates a Three.js camera, handling view transforms and responding to user controls.
+   * BasePlateRenderer: Creates and renders the ground plane or “base plate” mesh, including any grid lines or shadow-receiving material beneath the build.
+   * BasePlateRotationScrollBar: Presents a draggable scrollbar UI that lets users rotate the base plate around the y-axis, updating the scene’s rotation in real time.
+   * UserBuildRenderer: Takes the user’s current build state (placed pieces) and converts each block into a 3D mesh, updating the scene as pieces are added, moved, or removed.
+   * TargetBuildRenderer: Loads the level’s target or reference build and displays it (translucently, but still casting shadows) so users can compare their construction against the goal.
+   * PieceInventory: Renders a palette or list of available block types, handling selection and filtering commands.
+   * LevelCardCarousel: Displays a horizontal carousel of level panels, letting users scroll through and select which level to load or retry.
+   * SettingsButton: A persistent overlay button that sits on the viewport and, when clicked, opens the settings panel for audio and graphics changes.
+   * /settings page: A React route or view that exposes user-configurable options (volume and quality settings).
+   * /tutorial page: A React route or standalone view showing players the basic controls and building tips.
+   * BackgroundMusic: Loads and loops ambient music tracks in the background, managing play/pause and volume changes.
+   * SoundEffects: Handles volume and playback of short audio a clip when a piece is selected or placed.
+
+
+
+
+
+
+Project Setup
+        This project uses next.js in order to load different rendering components on different pages. The current route (what page should be rendered) is stored in the URL. So, for example, going to “{app}.com/sandbox” in the browser will load the sandbox page, and bring in all of its functionality. Upon loading the link to the page (http://localhost:3000 when running on a dev server), the main menu route is visited. This route stores four buttons, which all just point to different routes. Game states, such as what the user settings are, what the current user build is, and the inventory of pieces are held using what are called “stores”. These are essentially just large collections of object states that can be set, and are equivalent to wrapper classes in other languages. The library used for these stores is called zustand and makes it easier to create such state stores. All of the visual rendering is done via normal react components, in combination with three.js (or really its react library counter part, react-three-fiber). The utility functions, like calculating what the piece position should be snapped to, and the code for creating of geometries and meshes, are separated out into a utils/ folder.
+
+
+Routes:
+   * puzzle/menu:
+   * This route goes to the puzzle menu section, which utilizes the LevelCardCarousel component. The user is able to cycle through the various base puzzles and select which puzzle they want to try. Upon double clicking a LevelCard component, the user is taken to the puzzle/[levelId] route, which loads in the level with an id corresponding to what that LevelCard is pointing at
+   * puzzle/[levelId]:
+   * This route is responsible for hosting the main game. It loads in all of the Renderer components, and all of the UI wrappers for interacting with the state stores. It uses react-three-fiber for a lot of the components, like in the TargeBuildtRenderer and UserBuildRenderer The user is able to toggle between the target build mode / solution to the puzzle, and what they currently have placed down. This page is also responsible for handling the keyboard inputs, so that they can be passed down to the renderer components and state stores, connecting these functions with the user input. There is also mouse functionality here, as the user can select different pieces in their inventory, and select pieces within the board to move or delete already placed pieces. The reason for the [levelId] in the routing is that these brackets indicate a dynamic route. This means that the browser can be set to app.com/puzzle/level1, or app.com/puzzle/another_level, or anything else. The app then looks at what value is stored within this route, and loads the level stored within the data/levels/base folder that corresponds to this id. This makes it so that new levels can be easily added to the game by simply creating a new .json file within the directory.
+   * sandbox:
+   * This route works similar to the puzzle/[levelId] route, but without the TargetBuildRenderer. It allows the user to place down however many pieces they want, and to build whatever they want, and to then save this level data to a json file under a name of their choice. The json file itself is named with a unique id.
+   * settings:
+   * This route is used in order to change the state store of usePlayer().settings. Here, the user can change the rendering quality of the game (which is really just the number of segments in each of the lego piece’s studs) and the audio of the game. It is accessed both by the settings button in the main menu, and the settings button on the sandbox and puzzle/[levelId] routes
+   * tutorial:
+   * This route simply displays a list of all the user input methods for the game. It is also accessed by the tutorial button that exists within the sandbox and puzzle/[levelId] routes.
+Stores:
+   * usePlayer:
+   * Allows for persistent storage of settings and what levels the user has completed. Upon first visit to the site, the stored values are all initialized to their defaults. The browser’s localStorage is used in order to keep track of all of these settings, but the user can clear them if they go into their browser and delete the cookies for the website.
+   * useInventoryManager:
+   * Tracks what pieces the player currently has in their inventory. When a piece is selected and placed down, it is taken out of the inventory and the count is decremented by 1. If a piece is removed from the board, it is added back into the inventory and the state is updated. This also has functionality for storing infinite pieces when the user is in sandbox mode, so that they can build whatever they want.
+   * useBuildManager:
+   * This does most of the heavy lifting for the building processes. It stores what is currently placed, as well as what piece is currently being staged. This will also allow for the importing and exporting of level designs from and into json file formats. All user piece locations and ids are stored here, so that the Renderer components can access what is currently on the level, without having to actually store the full Lego piece components, making the system run a little bit faster.
+   * useBasePlateStore:
+   * Contains all the logic for the base plate. This is in a state store so that both the TargetBuildRenderer component and UserBuildRenderer component can access the current baseplate rotation. It also allows the BasePlateRotationSlider to be able to change the current rotation of the builds.
+
+
+Data:
+        There is also a folder called data, which stores any hard coded definitions for things. In our implementation, this is the base levels and the definitions for each of the pieces. These files can be updated to include more levels or piece types without affecting any of the other functionality within the app. The app will also respond to these additions by showing a new level in the puzzle/menu route, or by showing more defined pieces in the inventory component.
+
+Styling:
+	For styling of all the components, we used a css framework called tailwind that makes it easier to define styles like the colors of things and position of components within the project. It allows you to define styles inline with components so that the definition of things is more readable.
+
+Pages & routing
+   * /puzzle/menu — level selector
+   * /puzzle/[levelId] — primary puzzle interface
+   * /sandbox — mode used for building custom levels and playing with the pieces
+   * /settings — graphics and audio configuration
+   * /tutorial — quick start guide
+Challenges Faced
+   * Autoplay restrictions: Browsers block audio until user interaction; we addressed this by triggering music on first click.
+   * Performance optimization: Reduced draw calls by reusing meshes and batching in React Three Fiber.
+   * Finding the correct spot for the lego pieces to be placed on the grid: The most technical function / file in the project in my opinion is the studUtils.ts file. This file handles all the logistics for taking in a piece position, and outputting its corrected position values. This also handled the rotation of each piece, along with calculating where all the current studs are in world space
+   * Piece positioning: Originally, the mouse was used for piece placement, but this turned out to be too performance heavy, so it was removed for the less taxing, although more clunky WASD controls.
+   * Custom level importing: This feature was not fully implemented. In sandbox mode, the user is able to save / export levels into custom json files. Originally, the plan was to have the user also be able to import these levels as stored puzzles in their own system. However, the way we are currently loading levels (looking at hard coded level json files that exist within the data/levels/base/ directory) did not mesh well with this idea. Looking into it and researching, we found that the importing of these custom routes using next.js would be much more difficult, as browsers do not allow for editing of files on the user’s operating system, except for in the designated downloads folder, so we scrapped this for possible future implementation.

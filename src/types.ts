@@ -1,8 +1,15 @@
 import * as THREE from "three";
 
+// A 3D position in world space
 export type Position3 = [number, number, number];
+
+// A direction
 export type Direction = "left" | "right" | "up" | "down";
+
+// A type of piece given its id
 export type DefinedPieceType = "short-brick" | "medium-brick" | "tall-brick";
+
+// A list of valid piece ids
 export type DefinedPieceId =
   | "brick-1x1x0.5"
   | "brick-1x1x1"
@@ -30,6 +37,7 @@ export type DefinedPieceId =
   | "brick-3x3x2";
 export type DefinedBasePlateId = "base-plate-16x16" | "base-plate-8x3";
 
+// A definition of a piece type given its id
 export interface PieceDetail {
   pieceId: DefinedPieceId;
   type: DefinedPieceType;
@@ -41,6 +49,7 @@ export interface PieceDetail {
   defaultColor: string;
 }
 
+// A definition of a base plate type given its id
 export interface BasePlateDetail {
   pieceId: DefinedBasePlateId;
   name: string;
@@ -51,7 +60,7 @@ export interface BasePlateDetail {
   defaultColor: string;
 }
 
-/** A placed piece in the world */
+// A piece that is currently in the world
 export interface Piece {
   key: string;
   pieceId: string;
@@ -60,6 +69,7 @@ export interface Piece {
   color?: string;
 }
 
+// A base plate that is currently in the world
 export interface BasePlate {
   key: string;
   pieceId: string;
@@ -70,6 +80,7 @@ export interface BasePlate {
   sizeZ: number;
 }
 
+// A piece that is currently being placed in the world
 export interface StagedPiece {
   key: string;
   pieceId: string;

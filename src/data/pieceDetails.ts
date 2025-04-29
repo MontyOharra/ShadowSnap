@@ -46,6 +46,16 @@ function generateBottomStudPositions(
   return positions;
 }
 
+/*
+  This const contains the definition of each piece type given its id
+  It stores the geometry, top and bottom stud positions, inventory icon, and default color
+  The geometry is a function that returns a THREE.Geometry object
+  The top and bottom stud positions are arrays of [x, y, z] positions
+  The inventory icon is a string that will be displayed in the inventory
+  The default color is a string that will be displayed in the inventory
+
+  More pieces can be added by adding a new object to the array with the desired properties
+*/
 export const pieceDetails: PieceDetail[] = [
   /* ------------------------------------------------------------------ */
   /* Short Bricks (0.5 height)                                          */

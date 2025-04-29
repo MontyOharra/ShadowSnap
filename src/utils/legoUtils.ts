@@ -103,6 +103,9 @@ export function getLegoPieceGhostMaterial(
 }
 
 export function getLegoPieceInvisibleMaterial(): THREE.MeshPhysicalMaterial {
+  /*
+      Define the material for a piece that is invisible (target building piece)
+  */
   return new THREE.MeshPhysicalMaterial({
     color: "#000000",
     transparent: true,
@@ -111,6 +114,11 @@ export function getLegoPieceInvisibleMaterial(): THREE.MeshPhysicalMaterial {
 }
 
 export function getPieceFromId(pieceId: string): PieceDetail {
+  /*
+      Get the definition of a piece given its id
+
+      pieceId: the id of the piece
+  */
   const pieceDetail = pieceDetails.find((piece) => piece.pieceId === pieceId);
   if (!pieceDetail) {
     throw new Error(`Piece id ${pieceId} not found`);
@@ -119,6 +127,11 @@ export function getPieceFromId(pieceId: string): PieceDetail {
 }
 
 export function getBasePlateFromId(pieceId: string): BasePlateDetail {
+  /*
+      Get the definition of a base plate given its id
+
+      pieceId: the id of the base plate
+  */
   const pieceDetail = basePlateDetails.find(
     (piece) => piece.pieceId === pieceId
   );

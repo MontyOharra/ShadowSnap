@@ -59,22 +59,20 @@ export async function loadLevelData(file: File): Promise<LevelData> {
   }
 }
 
-/**
- * Generates a unique level ID
- * @returns A unique string ID
- */
+// Generates a unique level ID
 function generateLevelId(): string {
   return `level_${Math.random().toString(36).substring(2, 9)}`;
 }
 
-/**
- * Saves level data to a JSON file in the data/levels/ directory
- * @param levelName - The name of the level (used in the JSON data)
- * @param pieces - The array of pieces to save
- * @returns Promise that resolves when the save is complete
- * @throws Error if the save operation fails
- */
+
 export async function saveLevelData(
+  /*
+  Saves level data to a JSON file in downloads of the user's browser
+
+  levelName - The name of the level (used in the JSON data)
+  pieces - The array of pieces to save
+
+ */
   levelName: string,
   pieces: LevelPiece[]
 ): Promise<void> {

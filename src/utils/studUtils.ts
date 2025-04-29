@@ -6,23 +6,17 @@ import { PieceDetail } from "@/types";
 
 const GRID = 0.5;
 
-/**
- * Snaps a value to the nearest grid point
- */
+// Snaps a value to the nearest grid point
 function getSnappedValue(n: number): number {
   return Math.round(n / GRID) * GRID;
 }
 
-/**
- * Creates a key for the stud position map
- */
+// Creates a key for the stud position map
 function keyXZ(x: number, z: number): string {
   return `${getSnappedValue(x)}|${getSnappedValue(z)}`;
 }
 
-/**
- * Creates a map of stud positions to their highest Y values
- */
+// Creates a map of stud positions to their highest Y values
 function createStudHeightMap(
   pieces: (Piece | BasePlate)[]
 ): Record<string, number> {
@@ -36,9 +30,7 @@ function createStudHeightMap(
   return map;
 }
 
-/**
- * Finds the center bottom stud of a piece
- */
+// Finds the center bottom stud of a piece
 function findCenterBottomStud(def: PieceDetail): Position3 | null {
   const bottomStuds = def.bottomStudPositions;
   let centerBottomStudPosition: Position3 | null = null;
@@ -62,9 +54,7 @@ function findCenterBottomStud(def: PieceDetail): Position3 | null {
   return centerBottomStudPosition;
 }
 
-/**
- * Snaps a coordinate to the grid based on baseplate size
- */
+// Snaps a coordinate to the grid based on baseplate size
 function snapToGrid(coord: number, size: number): number {
   if (size % 2 === 1) {
     // Odd size: snap to whole numbers
@@ -75,9 +65,7 @@ function snapToGrid(coord: number, size: number): number {
   }
 }
 
-/**
- * Calculates the rotated corners of a piece
- */
+// Calculates the rotated corners of a piece
 function getRotatedCorners(
   pieceSize: THREE.Vector3,
   rotation: number,
@@ -102,9 +90,7 @@ function getRotatedCorners(
   });
 }
 
-/**
- * Checks if a piece is within baseplate bounds
- */
+// Checks if a piece is within baseplate bounds
 function isWithinBounds(
   corners: [number, number][],
   basePlateSizeX: number,
@@ -117,9 +103,7 @@ function isWithinBounds(
   );
 }
 
-/**
- * Gets the highest Y position for a piece's studs
- */
+// Gets the highest Y position for a piece's studs
 function getHighestStudY(
   piece: StagedPiece,
   studMap: Record<string, number>,
@@ -139,9 +123,7 @@ function getHighestStudY(
   return { maxY, valid };
 }
 
-// ------------------------------------------------------------------
 // Convert local stud / hollow coords to world‑space
-// ------------------------------------------------------------------
 export function getPieceStudCoords(
   piece: Piece | BasePlate,
   studType: "top" | "bottom"
@@ -212,9 +194,7 @@ export function isStudUnderPieces(piece: Piece, allPieces: Piece[]): boolean {
   );
 }
 
-// ------------------------------------------------------------------
 // Given placed pieces + a candidate, return { x, y, z, valid }
-// ------------------------------------------------------------------
 export function snapAndValidate(
   allPieces: Piece[],
   stagedPiece: StagedPiece,

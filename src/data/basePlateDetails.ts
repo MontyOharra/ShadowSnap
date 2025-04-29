@@ -13,6 +13,7 @@ function generateBasePlateStuds(nx: number, nz: number): Position3[] {
 }
 
 export function getBasePlateFromId(pieceId: string): BasePlateDetail {
+  // Obtains the BasePlateDetail definition of each base plate type given its id
   const pieceDetail = basePlateDetails.find(
     (piece: BasePlateDetail) => piece.pieceId === pieceId
   );
