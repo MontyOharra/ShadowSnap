@@ -27,6 +27,12 @@ export default function Home() {
             Sandbox
           </Link>
           <Link
+            href="/tutorial"
+            className="w-48 px-8 py-4 text-xl font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors text-center"
+          >
+            Tutorial
+          </Link>
+          <Link
             href="/settings"
             className="w-48 px-8 py-4 text-xl font-bold text-white bg-gray-600 rounded-lg hover:bg-gray-700 transition-colors text-center"
           >

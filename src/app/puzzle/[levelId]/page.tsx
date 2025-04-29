@@ -15,6 +15,7 @@ import { useInventoryManager } from "@/stores/useInventoryManager";
 import BasePlateRenderer from "@/components/BasePlateRenderer";
 import { transformLevelData } from "@/utils/dataUtils";
 import SettingsButton from "@/components/SettingsButton";
+import Link from "next/link";
 
 export default function PuzzleLevel() {
   const params = useParams<{ levelId: string }>();
@@ -52,27 +53,37 @@ export default function PuzzleLevel() {
         overflow: "hidden",
       }}
     >
-      <SettingsButton />
-      <button
-        className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
-          mode === "user"
-            ? "bg-blue-600 text-white"
-            : "bg-white text-blue-600 border border-blue-600"
-        }`}
-        onClick={() => setMode("user")}
-      >
-        User Build
-      </button>
-      <button
-        className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
-          mode === "target"
-            ? "bg-blue-600 text-white"
-            : "bg-white text-blue-600 border border-blue-600"
-        }`}
-        onClick={() => setMode("target")}
-      >
-        Target Build
-      </button>
+      <div className="absolute bottom-24 right-4 flex gap-4 z-20">
+        <SettingsButton />
+        <Link
+          href={`/tutorial?returnTo=/puzzle/${levelId}`}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 font-semibold"
+        >
+          Tutorial
+        </Link>
+      </div>
+      <div className="absolute top-4 left-4 flex gap-4 z-20">
+        <button
+          className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
+            mode === "user"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-blue-600 border border-blue-600"
+          }`}
+          onClick={() => setMode("user")}
+        >
+          User Build
+        </button>
+        <button
+          className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
+            mode === "target"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-blue-600 border border-blue-600"
+          }`}
+          onClick={() => setMode("target")}
+        >
+          Target Build
+        </button>
+      </div>
       <KeyboardControls
         map={[
           { name: "left", keys: ["ArrowLeft", "a"] },
