@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useBuildManager } from "@/stores/useBuildManager";
 import { usePlayer } from "@/stores/usePlayer";
 import { DefinedPieceId } from "@/types";
+import { checkPiecesMatch } from "@/utils/puzzleUtils";
 
 interface PieceData {
   pieceId: string;
@@ -77,9 +78,9 @@ export default function PuzzleLevel() {
             (pieceId) => pieceCounts[pieceId] > 0
           );
           if (firstPiece) {
-            useInventoryManager.getState().setSelectedPieceId(
-              firstPiece as DefinedPieceId
-            );
+            useInventoryManager
+              .getState()
+              .setSelectedPieceId(firstPiece as DefinedPieceId);
           }
 
           Object.keys(pieceCounts).forEach((pieceId) => {
@@ -102,54 +103,8 @@ export default function PuzzleLevel() {
     if (!isLevelLoaded || userPieces.length === 0 || targetPieces.length === 0)
       return;
 
-    // Only check if the number of pieces matches
-    if (userPieces.length !== targetPieces.length) return;
-
-    // Create maps for efficient comparison
-    const userPieceMap = new Map();
-    const targetPieceMap = new Map();
-
-    // Build maps of piece types and their counts
-    userPieces.forEach((piece) => {
-      const key = piece.pieceId;
-      const count = userPieceMap.get(key) || 0;
-      userPieceMap.set(key, count + 1);
-    });
-
-    targetPieces.forEach((piece) => {
-      const key = piece.pieceId;
-      const count = targetPieceMap.get(key) || 0;
-      targetPieceMap.set(key, count + 1);
-    });
-
-    // Check if maps have the same keys and counts
-    let isMatch = true;
-
-    if (userPieceMap.size !== targetPieceMap.size) {
-      isMatch = false;
-    } else {
-      for (const [key, count] of userPieceMap.entries()) {
-        if (targetPieceMap.get(key) !== count) {
-          isMatch = false;
-          break;
-        }
-      }
-    }
-
-    // Check if positions match (simplified)
-    if (isMatch) {
-      const userPositions = new Set(
-        userPieces.map((p) => `${p.pieceId}_${p.pos.join(",")}`)
-      );
-      const targetPositions = new Set(
-        targetPieces.map((p) => `${p.pieceId}_${p.position.join(",")}`)
-      );
-
-      // Check if the number of unique positions matches
-      if (userPositions.size !== targetPositions.size) {
-        isMatch = false;
-      }
-    }
+    // Check if the user's build matches the target using the utility function
+    const isMatch = checkPiecesMatch(userPieces, targetPieces);
 
     // If match is found, mark level as complete and unlock next level
     if (isMatch) {
@@ -218,7 +173,7 @@ export default function PuzzleLevel() {
               Target Build
             </button>
           </div>
-            <SettingsButton />
+          <SettingsButton />
         </div>
       </div>
 
