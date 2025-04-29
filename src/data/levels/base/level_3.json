@@ -1,13 +1,43 @@
 {
   "id": "level_3",
-  "name": "Level 3",
-  "createdBy": "Test User",
+  "name": "Tree thing",
   "pieces": [
     {
-      "pieceId": "brick-2x2x1",
-      "color": "#00FF00",
-      "position": [2, 0, 0],
+      "pieceId": "brick-2x2x2",
+      "color": "#FF9800",
+      "position": [1, 0.2, 1],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "pieceId": "brick-2x4x1",
+      "color": "#E91E63",
+      "position": [-1, 2.2, 0.9999999999999999],
+      "rotation": [0, -1.5707963267948966, 0]
+    },
+    {
+      "pieceId": "brick-2x4x1",
+      "color": "#E91E63",
+      "position": [-2, 3.2, 2],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "pieceId": "brick-2x4x1",
+      "color": "#E91E63",
+      "position": [-1, 4.2, 3],
+      "rotation": [0, -1.5707963267948966, 0]
+    },
+    {
+      "pieceId": "brick-2x4x0.5",
+      "color": "#009688",
+      "position": [0, 5.2, 3],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "pieceId": "brick-2x4x0.5",
+      "color": "#009688",
+      "position": [0, 5.7, 0],
       "rotation": [0, 0, 0]
     }
-  ]
+  ],
+  "createdBy": "user"
 }

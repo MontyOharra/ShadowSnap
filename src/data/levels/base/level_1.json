@@ -1,6 +1,6 @@
 {
   "id": "level_1",
-  "name": "Level 1",
+  "name": "First Build",
   "createdBy": "John Doe",
   "pieces": [
     {
@@ -13,12 +13,6 @@
       "pieceId": "brick-2x2x1",
       "color": "#000000",
       "position": [0, 1.2, 0],
-      "rotation": [0, 0, 0]
-    },
-    {
-      "pieceId": "brick-2x4x2",
-      "color": "#000000",
-      "position": [4, 0.2, 5],
       "rotation": [0, 0, 0]
     }
     

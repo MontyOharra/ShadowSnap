@@ -49,8 +49,8 @@ function getInitialState(): PlayerState {
       showTutorial: true,
       language: "en",
     },
-    completedLevels: ["level_1"],
-    unlockedLevels: ["level_1", "level_2"],
+    completedLevels: [],
+    unlockedLevels: ["level_1"],
   };
 }
 

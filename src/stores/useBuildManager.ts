@@ -76,6 +76,7 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
       set((state) => {
         const selectedPieceId = useInventoryManager.getState().selectedPieceId;
         if (!selectedPieceId) return {};
+        if (state.stagedPiece) return {};
 
         // Get baseplate from the store
         const { basePlate } = useBasePlateStore

@@ -53,7 +53,18 @@ export const useInventoryManager = create<InventoryState>((set, get) => {
           // Don't decrement infinity
           return { inventory: newInventory };
         } else if (currentCount && currentCount > 0) {
-          newInventory.set(pieceId, currentCount - 1);
+          const newCount = currentCount - 1;
+          newInventory.set(pieceId, newCount);
+
+          // If the count reaches zero and this is the currently selected piece, reset selection
+          if (newCount === 0 && state.selectedPieceId === pieceId) {
+            return {
+              inventory: newInventory,
+              selectedPieceId: null,
+            };
+          }
+
+          return { inventory: newInventory };
         }
 
         return { inventory: newInventory };
@@ -99,7 +110,17 @@ export const useInventoryManager = create<InventoryState>((set, get) => {
           // Don't decrement infinity
           return {};
         } else if (currentCount && currentCount > 0) {
-          newInventory.set(pieceId, currentCount - 1);
+          const newCount = currentCount - 1;
+          newInventory.set(pieceId, newCount);
+
+          // If count reaches zero, reset the selected piece ID
+          if (newCount === 0) {
+            return {
+              inventory: newInventory,
+              selectedPieceId: null,
+            };
+          }
+
           return { inventory: newInventory };
         }
 

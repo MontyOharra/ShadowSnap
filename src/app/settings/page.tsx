@@ -28,18 +28,20 @@ export default function Settings() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
           <div className="flex gap-4">
-            <Link
-              href="/puzzle/menu"
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
+            {returnTo !== "/" ? (
+              <Link
+                href="/"
+                className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
             >
-              Level Selector
-            </Link>
-            <Link
-              href={returnTo}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
+                Main Menu
+              </Link>
+            ) : null} 
+              <Link
+                href={returnTo}
+                className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
             >
-              ← Back
-            </Link>
+                ← Back
+              </Link>
           </div>
         </div>
 
@@ -47,7 +49,9 @@ export default function Settings() {
         <div className="space-y-8">
           {/* Graphics Settings */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800">Graphics Settings</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Graphics Settings
+            </h2>
             <div className="grid grid-cols-2 gap-4">
               {["low", "normal", "high", "ultra"].map((quality) => (
                 <button
@@ -67,8 +71,10 @@ export default function Settings() {
 
           {/* Audio Settings */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800">Audio Settings</h2>
-            
+            <h2 className="text-xl font-semibold text-gray-800">
+              Audio Settings
+            </h2>
+
             {/* Master Volume */}
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -80,7 +86,9 @@ export default function Settings() {
                 min="0"
                 max="100"
                 value={settings.masterVolume}
-                onChange={(e) => setSetting("masterVolume", Number(e.target.value))}
+                onChange={(e) =>
+                  setSetting("masterVolume", Number(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
             </div>
@@ -96,7 +104,9 @@ export default function Settings() {
                 min="0"
                 max="100"
                 value={settings.musicVolume}
-                onChange={(e) => setSetting("musicVolume", Number(e.target.value))}
+                onChange={(e) =>
+                  setSetting("musicVolume", Number(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
             </div>

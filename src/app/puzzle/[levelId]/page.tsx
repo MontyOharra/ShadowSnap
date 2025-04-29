@@ -41,7 +41,7 @@ export default function PuzzleLevel() {
   const addCompletedLevel = usePlayer((state) => state.addCompletedLevel);
   const unlockLevel = usePlayer((state) => state.unlockLevel);
 
-  // Load level data
+  // Load level data and clear current build
   useEffect(() => {
     try {
       // Extract the level number from the levelId (e.g., "level_2" -> "2")
@@ -72,11 +72,22 @@ export default function PuzzleLevel() {
           // Set inventory to the number of each piece in the level
           const inventory = useInventoryManager.getState().inventory;
 
+          // Set current inventory item to the first piece that has a count greater than 0
+          const firstPiece = Object.keys(pieceCounts).find(
+            (pieceId) => pieceCounts[pieceId] > 0
+          );
+          if (firstPiece) {
+            useInventoryManager.getState().setSelectedPieceId(
+              firstPiece as DefinedPieceId
+            );
+          }
+
           Object.keys(pieceCounts).forEach((pieceId) => {
             inventory.set(pieceId as DefinedPieceId, pieceCounts[pieceId]);
           });
 
           setIsLevelLoaded(true);
+          useBuildManager.getState().import({ pieces: [] });
         })
         .catch((error) => {
           console.error(`Error loading level ${levelId}:`, error);
@@ -172,7 +183,7 @@ export default function PuzzleLevel() {
         overflow: "hidden",
       }}
     >
-      <div className="absolute bottom-24 right-4 flex gap-4 z-20">
+      <div className="absolute bottom-7 right-4 flex gap-4 z-20">
         <Link
           href={`/tutorial?returnTo=/puzzle/${levelId}`}
           className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 font-semibold"
@@ -207,18 +218,9 @@ export default function PuzzleLevel() {
               Target Build
             </button>
           </div>
-          <div className="flex space-x-2">
-            <Link
-              href="/puzzle/menu"
-              className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg shadow hover:bg-gray-300 font-bold transition-colors"
-            >
-              Back to Menu
-            </Link>
-          </div>
+            <SettingsButton />
         </div>
       </div>
-
-      <SettingsButton />
 
       <KeyboardControls
         map={[
@@ -230,7 +232,6 @@ export default function PuzzleLevel() {
           { name: "place", keys: ["p"] },
           { name: "esc", keys: ["Escape"] },
           { name: "q", keys: ["q"] },
-          { name: "e", keys: ["e"] },
           { name: "delete", keys: ["Backspace"] },
         ]}
       >

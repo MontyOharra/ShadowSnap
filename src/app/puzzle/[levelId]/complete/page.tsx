@@ -2,9 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
 import { usePlayer } from "@/stores/usePlayer";
-import confetti from "canvas-confetti";
 
 export default function LevelCompletePage() {
   const params = useParams<{ levelId: string }>();
@@ -16,27 +14,6 @@ export default function LevelCompletePage() {
   const isLevelUnlocked = usePlayer((state) =>
     state.isLevelUnlocked(nextLevelId)
   );
-
-  // Launch confetti when page loads
-  useEffect(() => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-
-    const runConfetti = () => {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        disableForReducedMotion: true,
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(runConfetti);
-      }
-    };
-
-    runConfetti();
-  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 p-4">
