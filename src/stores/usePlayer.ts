@@ -22,6 +22,7 @@ interface PlayerStore extends PlayerState {
   setSetting: (key: keyof PlayerState["settings"], value: any) => void;
   addCompletedLevel: (levelId: string) => void;
   unlockLevel: (levelId: string) => void;
+  isLevelUnlocked: (levelId: string) => boolean;
 }
 
 const PLAYER_KEY = "playerState";
@@ -37,16 +38,16 @@ function getInitialState(): PlayerState {
     if (stored) return JSON.parse(stored);
   }
   return {
-    settings: { 
-      sound: true, 
-      music: true, 
+    settings: {
+      sound: true,
+      music: true,
       quality: "normal",
       masterVolume: 100,
       musicVolume: 80,
       controlsSensitivity: 50,
       vibration: true,
       showTutorial: true,
-      language: "en"
+      language: "en",
     },
     completedLevels: ["level_1"],
     unlockedLevels: ["level_1", "level_2"],
@@ -90,5 +91,10 @@ export const usePlayer = create<PlayerStore>((set, get) => ({
       set({ unlockedLevels: newUnlocked });
       localStorage.setItem(PLAYER_KEY, JSON.stringify(newState));
     }
+  },
+
+  isLevelUnlocked: (levelId) => {
+    // Check if a level is unlocked
+    return get().unlockedLevels.includes(levelId);
   },
 }));

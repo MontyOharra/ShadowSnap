@@ -9,7 +9,7 @@ export default function BackgroundMusic() {
   const settings = usePlayer((state) => state.settings);
   const [hasStarted, setHasStarted] = useState(false);
 
-  // Initialize audio element 
+  // Initialize audio element
   useEffect(() => {
     if (!initializedRef.current) {
       audioRef.current = new Audio("/audio/background.mp3");
@@ -18,9 +18,10 @@ export default function BackgroundMusic() {
 
       // Try to start playing immediately if music is enabled
       if (settings.music) {
-        const volume = (settings.masterVolume / 100) * (settings.musicVolume / 100);
+        const volume =
+          (settings.masterVolume / 100) * (settings.musicVolume / 100);
         audioRef.current.volume = volume;
-        audioRef.current.play().catch(error => {
+        audioRef.current.play().catch((error) => {
           console.error("Error playing background music:", error);
         });
         setHasStarted(true);
@@ -29,9 +30,10 @@ export default function BackgroundMusic() {
       // Add click listener in case
       const handleClick = () => {
         if (!hasStarted && settings.music) {
-          const volume = (settings.masterVolume / 100) * (settings.musicVolume / 100);
+          const volume =
+            (settings.masterVolume / 100) * (settings.musicVolume / 100);
           audioRef.current!.volume = volume;
-          audioRef.current!.play().catch(error => {
+          audioRef.current!.play().catch((error) => {
             console.error("Error playing background music:", error);
           });
           setHasStarted(true);
@@ -54,13 +56,14 @@ export default function BackgroundMusic() {
   // Handle settings change
   useEffect(() => {
     if (audioRef.current && hasStarted) {
-      const volume = (settings.masterVolume / 100) * (settings.musicVolume / 100);
+      const volume =
+        (settings.masterVolume / 100) * (settings.musicVolume / 100);
       audioRef.current.volume = volume;
 
       if (!settings.music) {
         audioRef.current.pause();
       } else if (audioRef.current.paused) {
-        audioRef.current.play().catch(error => {
+        audioRef.current.play().catch((error) => {
           console.error("Error resuming background music:", error);
         });
       }
@@ -68,4 +71,4 @@ export default function BackgroundMusic() {
   }, [settings.music, settings.masterVolume, settings.musicVolume, hasStarted]);
 
   return null;
-} 
+}

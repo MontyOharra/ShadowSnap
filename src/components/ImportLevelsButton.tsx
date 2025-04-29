@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { loadLevelData, transformLevelData } from "@/utils/dataUtils";
 import { useBuildManager } from "@/stores/useBuildManager";
 import { useInventoryManager } from "@/stores/useInventoryManager";
+import { DefinedPieceId } from "@/types";
 
 interface ImportLevelsButtonProps {
   className?: string;
@@ -46,7 +47,7 @@ export default function ImportLevelsButton({
 
       // Set inventory to match the level
       Object.keys(pieceCounts).forEach((pieceId) => {
-        inventory.set(pieceId, pieceCounts[pieceId]);
+        inventory.set(pieceId as DefinedPieceId, pieceCounts[pieceId]);
       });
 
       // Import the level data into the build manager
