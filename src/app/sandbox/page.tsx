@@ -9,6 +9,7 @@ import PieceInventory from "@/components/PieceInventory";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 import { useEffect } from "react";
 import SceneCamera from "@/components/SceneCamera";
+import SettingsButton from "@/components/SettingsButton";
 
 export default function SandboxPage() {
   const setAllPiecesToInfinity = useInventoryManager(
@@ -29,6 +30,7 @@ export default function SandboxPage() {
         overflow: "hidden",
       }}
     >
+      <SettingsButton />
       <KeyboardControls
         map={[
           { name: "left", keys: ["ArrowLeft", "a"] },

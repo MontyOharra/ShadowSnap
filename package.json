@@ -12,9 +12,9 @@
     "@react-three/drei": "^10.0.6",
     "@react-three/fiber": "^9.1.2",
     "fs": "^0.0.1-security",
-    "next": "15.3.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "^15.3.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "three": "^0.175.0",
     "three-csg-ts": "^3.2.0",
     "three-stdlib": "^2.35.15"
