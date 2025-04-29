@@ -1,73 +1,57 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePlayer } from "@/stores/usePlayer";
 
 export default function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const settings = usePlayer((state) => state.settings);
+  const [hasStarted, setHasStarted] = useState(false);
 
-  // Initialize audio element only once
+  // Initialize audio element and click listener
   useEffect(() => {
     if (!audioRef.current) {
-      console.log("Creating new audio element");
       audioRef.current = new Audio("/audio/background.mp3");
       audioRef.current.loop = true;
-      
-      // Add event listeners for debugging
-      audioRef.current.addEventListener("canplay", () => {
-        console.log("Audio can play");
-      });
-      
-      audioRef.current.addEventListener("error", (e) => {
-        console.error("Audio error:", e);
-      });
-      
-      audioRef.current.addEventListener("play", () => {
-        console.log("Audio started playing");
-      });
 
-      // Initial play if music is enabled
-      if (settings.music) {
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
+      // Add click listener
+      const handleClick = () => {
+        if (!hasStarted && settings.music) {
+          audioRef.current!.volume = (settings.masterVolume / 100) * (settings.musicVolume / 100);
+          audioRef.current!.play().catch(error => {
             console.error("Error playing background music:", error);
           });
+          setHasStarted(true);
+          document.removeEventListener("click", handleClick);
         }
-      }
+      };
+
+      document.addEventListener("click", handleClick);
     }
 
-    // Cleanup
     return () => {
       if (audioRef.current) {
-        console.log("Cleaning up audio");
         audioRef.current.pause();
         audioRef.current = null;
       }
     };
-  }, []); 
+  }, [settings.music, settings.masterVolume, settings.musicVolume, hasStarted]);
 
-  // Update volume and play state when settings change
+  // Update volume and play with settings
   useEffect(() => {
-    if (audioRef.current) {
-      // Calculate actual volume (master volume * music volume)
+    if (audioRef.current && hasStarted) {
       const volume = (settings.masterVolume / 100) * (settings.musicVolume / 100);
-      console.log("Setting volume to:", volume);
       audioRef.current.volume = volume;
 
-      // Update play/pause state
-      if (settings.music && audioRef.current.paused) {
-        console.log("Resuming music");
+      if (!settings.music) {
+        audioRef.current.pause();
+      } else if (audioRef.current.paused) {
         audioRef.current.play().catch(error => {
           console.error("Error resuming background music:", error);
         });
-      } else if (!settings.music && !audioRef.current.paused) {
-        console.log("Pausing music");
-        audioRef.current.pause();
       }
     }
-  }, [settings.music, settings.masterVolume, settings.musicVolume]);
+  }, [settings.music, settings.masterVolume, settings.musicVolume, hasStarted]);
 
-  return null; // This component doesn't render anything
+  return null;
 } 
