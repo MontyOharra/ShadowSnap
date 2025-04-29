@@ -3,10 +3,13 @@
 
 import Link from "next/link";
 import { usePlayer } from "@/stores/usePlayer";
+import { useSearchParams } from "next/navigation";
 
 export default function Settings() {
   const settings = usePlayer((state) => state.settings);
   const setSetting = usePlayer((state) => state.setSetting);
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/";
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -15,15 +18,15 @@ export default function Settings() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
           <Link
-            href="/"
+            href={returnTo}
             className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
           >
-            ← Back to Main Menu
+            ← Back
           </Link>
         </div>
 
         {/* Settings Content */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+        <div className="space-y-4">
           {/* Audio Settings */}
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-800">Audio Settings</h2>

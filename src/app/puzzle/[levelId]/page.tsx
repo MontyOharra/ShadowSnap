@@ -14,6 +14,7 @@ import SceneBuilder from "@/components/SceneRenderer";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 import BasePlateRenderer from "@/components/BasePlateRenderer";
 import { transformLevelData } from "@/utils/dataUtils";
+import SettingsButton from "@/components/SettingsButton";
 
 export default function PuzzleLevel() {
   const params = useParams<{ levelId: string }>();
@@ -46,7 +47,7 @@ export default function PuzzleLevel() {
         overflow: "hidden",
       }}
     >
-      {" "}
+      <SettingsButton />
       <button
         className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
           mode === "user"
