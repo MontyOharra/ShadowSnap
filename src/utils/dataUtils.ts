@@ -89,8 +89,14 @@ export async function saveLevelData(
       pieces: pieces,
     };
 
+    // Add createdBy field for compatibility with level loader
+    const fullLevelData = {
+      ...levelData,
+      createdBy: "user",
+    };
+
     // Create a blob with the level data
-    const blob = new Blob([JSON.stringify(levelData, null, 2)], {
+    const blob = new Blob([JSON.stringify(fullLevelData, null, 2)], {
       type: "application/json",
     });
 
@@ -99,7 +105,7 @@ export async function saveLevelData(
     const a = document.createElement("a");
     a.href = url;
     // Save with the level ID as the filename
-    a.download = `data/levels/${levelId}.json`;
+    a.download = `${levelId}.json`;
 
     // Trigger the download
     document.body.appendChild(a);

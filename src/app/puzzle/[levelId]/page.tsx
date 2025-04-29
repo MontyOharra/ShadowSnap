@@ -9,12 +9,13 @@ import PieceInventory from "@/components/PieceInventory";
 import SceneCamera from "@/components/SceneCamera";
 import { useParams } from "next/navigation";
 import level1 from "@/data/levels/base/level_1.json"; // Replace with dynamic import if needed
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import SceneBuilder from "@/components/SceneRenderer";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 import BasePlateRenderer from "@/components/BasePlateRenderer";
 import { transformLevelData } from "@/utils/dataUtils";
 import SettingsButton from "@/components/SettingsButton";
+import ImportLevelsButton from "@/components/ImportLevelsButton";
 
 export default function PuzzleLevel() {
   const params = useParams<{ levelId: string }>();
@@ -53,26 +54,29 @@ export default function PuzzleLevel() {
       }}
     >
       <SettingsButton />
-      <button
-        className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
-          mode === "user"
-            ? "bg-blue-600 text-white"
-            : "bg-white text-blue-600 border border-blue-600"
-        }`}
-        onClick={() => setMode("user")}
-      >
-        User Build
-      </button>
-      <button
-        className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
-          mode === "target"
-            ? "bg-blue-600 text-white"
-            : "bg-white text-blue-600 border border-blue-600"
-        }`}
-        onClick={() => setMode("target")}
-      >
-        Target Build
-      </button>
+      <div className="absolute top-4 left-4 flex space-x-2 z-10">
+        <button
+          className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
+            mode === "user"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-blue-600 border border-blue-600"
+          }`}
+          onClick={() => setMode("user")}
+        >
+          User Build
+        </button>
+        <button
+          className={`px-6 py-3 rounded-lg font-bold shadow transition-colors ${
+            mode === "target"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-blue-600 border border-blue-600"
+          }`}
+          onClick={() => setMode("target")}
+        >
+          Target Build
+        </button>
+        <ImportLevelsButton />
+      </div>
       <KeyboardControls
         map={[
           { name: "left", keys: ["ArrowLeft", "a"] },
