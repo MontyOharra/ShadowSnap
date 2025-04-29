@@ -4,12 +4,22 @@
 import Link from "next/link";
 import { usePlayer } from "@/stores/usePlayer";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Settings() {
+  const [isClient, setIsClient] = useState(false);
   const settings = usePlayer((state) => state.settings);
   const setSetting = usePlayer((state) => state.setSetting);
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") || "/";
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null; // Don't render anything on server
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -17,16 +27,44 @@ export default function Settings() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <Link
-            href={returnTo}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
-          >
-            ← Back
-          </Link>
+          <div className="flex gap-4">
+            <Link
+              href="/puzzle/menu"
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
+            >
+              Level Selector
+            </Link>
+            <Link
+              href={returnTo}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 font-semibold"
+            >
+              ← Back
+            </Link>
+          </div>
         </div>
 
         {/* Settings Content */}
-        <div className="space-y-4">
+        <div className="space-y-8">
+          {/* Graphics Settings */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-800">Graphics Settings</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {["low", "normal", "high", "ultra"].map((quality) => (
+                <button
+                  key={quality}
+                  onClick={() => setSetting("quality", quality)}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    settings.quality === quality
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {quality.charAt(0).toUpperCase() + quality.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Audio Settings */}
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-800">Audio Settings</h2>
