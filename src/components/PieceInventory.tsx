@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { pieceDetails } from "@/data/pieceDetails";
 import PieceSnapshot from "@/components/inventory/PieceSnapshot";
-import ColorPicker from "@/components/inventory/ColorPicker";
-import { DefinedPieceType } from "@/types";
+import { DefinedPieceType, DefinedPieceId } from "@/types";
 import { useInventoryManager } from "@/stores/useInventoryManager";
 
 export default function PieceInventory() {
@@ -13,10 +12,7 @@ export default function PieceInventory() {
   // Get state from stores
   const selectedPieceId = useInventoryManager((s) => s.selectedPieceId);
   const setNewPieceId = useInventoryManager((s) => s.setSelectedPieceId);
-  const setStagedPieceColor = useInventoryManager(
-    (s) => s.setSelectedPieceColor
-  );
-  const selectedColor = useInventoryManager((s) => s.selectedPieceColor);
+  const setPieceColor = useInventoryManager((s) => s.setSelectedPieceColor);
   const getPieceCount = useInventoryManager((s) => s.getPieceCount);
   const pieces = useInventoryManager((s) => s.inventory);
 
@@ -28,10 +24,10 @@ export default function PieceInventory() {
       );
       if (firstAvailablePiece) {
         setNewPieceId(firstAvailablePiece.pieceId);
-        setStagedPieceColor(firstAvailablePiece.defaultColor);
+        setPieceColor(firstAvailablePiece.defaultColor);
       }
     }
-  }, [selectedPieceId, setNewPieceId, setStagedPieceColor, getPieceCount]);
+  }, [selectedPieceId, setNewPieceId, setPieceColor, getPieceCount]);
 
   // Watch for piece count changes and update selected piece if needed
   useEffect(() => {
@@ -45,31 +41,27 @@ export default function PieceInventory() {
 
         if (nextAvailablePiece) {
           setNewPieceId(nextAvailablePiece.pieceId);
-          setStagedPieceColor(nextAvailablePiece.defaultColor);
+          setPieceColor(nextAvailablePiece.defaultColor);
         } else {
           // No pieces available, clear selection
           setNewPieceId(null);
         }
       }
     }
-  }, [selectedPieceId, getPieceCount, setNewPieceId, setStagedPieceColor]);
+  }, [selectedPieceId, getPieceCount, setNewPieceId, setPieceColor]);
 
   const filteredPieces = pieceDetails.filter(
     (piece) => (!filter || piece.type === filter) && pieces.has(piece.pieceId)
   );
 
-  const handlePieceSelect = (pieceId: string) => {
+  const handlePieceSelect = (pieceId: DefinedPieceId) => {
     const piece = pieceDetails.find((p) => p.pieceId === pieceId);
     const count = getPieceCount(pieceId);
     if (piece && count !== 0) {
       setNewPieceId(pieceId);
-      setStagedPieceColor(piece.defaultColor);
+      setPieceColor(piece.defaultColor);
     }
   };
-
-  function handleColorChange(color: string) {
-      setStagedPieceColor(color);
-  }
 
   return (
     <div
@@ -78,49 +70,59 @@ export default function PieceInventory() {
         top: "20px",
         right: "20px",
         width: "300px",
-        maxHeight: "calc(100vh - 40px)",
+        maxHeight: "calc(100vh - 100px)",
         zIndex: 100,
         pointerEvents: "auto",
         display: "flex",
         flexDirection: "column",
-        gap: "16px",
-        padding: "20px",
+        gap: "12px",
+        padding: "16px",
         backgroundColor: "rgba(255, 255, 255, 0.95)",
         borderRadius: "20px",
         boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         fontFamily: "var(--font-geist-sans)",
+        overflowY: "auto",
       }}
     >
-      {/* Title */}
+      {/* Title - Fixed at the top */}
       <h2
         style={{
           margin: 0,
-          fontSize: "24px",
+          fontSize: "22px",
           fontWeight: "600",
+          position: "sticky",
+          top: 0,
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          paddingTop: "6px",
+          paddingBottom: "6px",
+          zIndex: 1,
         }}
       >
         Inventory
       </h2>
 
-      {/* Filter Dropdown */}
+      {/* Filter Dropdown - Fixed below the title */}
       <select
         value={filter}
         onChange={(e) => setFilter(e.target.value as DefinedPieceType | "")}
         style={{
           width: "100%",
-          padding: "8px 12px",
+          padding: "6px 10px",
           borderRadius: "8px",
           border: "1px solid #ddd",
           backgroundColor: "white",
           cursor: "pointer",
           fontFamily: "inherit",
           fontSize: "14px",
+          position: "sticky",
+          top: "40px",
+          zIndex: 1,
         }}
       >
         <option value="">All Types</option>
-        <option value="brick">Bricks</option>
-        <option value="plate">Plates</option>
-        <option value="slant">Slants</option>
+        <option value="short-brick">Short Bricks</option>
+        <option value="medium-brick">Medium Bricks</option>
+        <option value="tall-brick">Tall Bricks</option>
       </select>
 
       {/* Pieces Grid with Scroll */}
@@ -128,10 +130,9 @@ export default function PieceInventory() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(2, 1fr)",
-          gap: "16px",
-          overflowY: "auto",
-          maxHeight: "calc(100vh - 300px)",
-          padding: "4px",
+          gap: "10px",
+          padding: "2px",
+          flex: 1,
         }}
       >
         {filteredPieces.map((piece) => {
@@ -145,12 +146,12 @@ export default function PieceInventory() {
                 cursor: isDisabled ? "not-allowed" : "pointer",
                 transition: "transform 0.2s ease",
                 position: "relative",
-                borderRadius: "8px",
+                borderRadius: "6px",
                 overflow: "hidden",
                 border:
                   selectedPieceId === piece.pieceId
                     ? "2px solid #007AFF"
-                    : "2px solid #FFFFFF",
+                    : "1px solid #DDDDDD",
                 opacity: isDisabled ? 0.5 : 1,
                 filter: isDisabled ? "grayscale(100%)" : "none",
               }}
@@ -170,11 +171,11 @@ export default function PieceInventory() {
                     ? "rgb(100, 100, 100)"
                     : "rgb(0, 0, 0)",
                   color: "white",
-                  padding: "4px 8px",
-                  borderBottomLeftRadius: "8px",
-                  fontSize: "16px",
+                  padding: "2px 6px",
+                  borderBottomLeftRadius: "6px",
+                  fontSize: "14px",
                   fontWeight: "bold",
-                  minWidth: "32px",
+                  minWidth: "24px",
                   textAlign: "center",
                 }}
               >
@@ -184,12 +185,6 @@ export default function PieceInventory() {
           );
         })}
       </div>
-
-      {/* Color Picker */}
-      <ColorPicker
-        selectedColor={selectedColor ?? "#ffffff"}
-        onColorChange={handleColorChange}
-      />
     </div>
   );
 }

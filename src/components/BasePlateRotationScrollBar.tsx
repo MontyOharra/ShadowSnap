@@ -11,18 +11,35 @@ export default function BasePlateRotationScrollBar() {
     <div
       style={{
         position: "absolute",
-        bottom: 10,
-        left: 200, // leave room for inventory
-        right: 20,
+        bottom: 20,
+        left: "50%",
+        transform: "translateX(-50%)", // Center horizontally
+        width: "60%", // Use percentage of screen width
+        maxWidth: "800px", // Maximum width
         zIndex: 100,
         pointerEvents: "auto",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "5px",
       }}
     >
+      <div
+        style={{
+          fontSize: "14px",
+          color: "white",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          padding: "2px 8px",
+          borderRadius: "10px",
+        }}
+      >
+        Rotation: {deg.toFixed(1)}°
+      </div>
       <input
         type="range"
         min={0}
         max={360}
-        step={0.1}
+        step={0.5} // Smaller increment for finer control
         value={deg}
         onChange={(e) => {
           const d = parseFloat(e.target.value);
@@ -31,6 +48,7 @@ export default function BasePlateRotationScrollBar() {
         style={{
           width: "100%",
           pointerEvents: "all",
+          height: "20px", // Slightly taller for easier use
         }}
       />
     </div>
