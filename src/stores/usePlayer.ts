@@ -5,22 +5,27 @@ interface PlayerState {
     sound: boolean;
     music: boolean;
     quality: string;
-  };
-  completedLevels: string[];
-  unlockedLevels: string[];
+  }; // Settings for the player, add more as needed
+  completedLevels: string[]; // Array of level IDs that the player has completed
+  unlockedLevels: string[]; // Array of level IDs that the player has unlocked
 }
 
 interface PlayerStore extends PlayerState {
-  loadPlayer: () => Promise<void>;
+  loadPlayer: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setSetting: (key: keyof PlayerState["settings"], value: any) => Promise<void>;
-  addCompletedLevel: (levelId: string) => Promise<void>;
-  unlockLevel: (levelId: string) => Promise<void>;
+  setSetting: (key: keyof PlayerState["settings"], value: any) => void;
+  addCompletedLevel: (levelId: string) => void;
+  unlockLevel: (levelId: string) => void;
 }
 
 const PLAYER_KEY = "playerState";
 
 function getInitialState(): PlayerState {
+  /*
+  This function is used to get the initial state of the player.
+  It checks if the player state exists in local storage and returns it if it does.
+  If it doesn't exist, it sets the default state.
+  */
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem(PLAYER_KEY);
     if (stored) return JSON.parse(stored);
@@ -32,49 +37,42 @@ function getInitialState(): PlayerState {
   };
 }
 
-const fetchPlayer = async (): Promise<PlayerState> => {
-  const res = await fetch("/api/player");
-  return await res.json();
-};
-
-const savePlayer = async (player: PlayerState) => {
-  await fetch("/api/player", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(player),
-  });
-};
-
 export const usePlayer = create<PlayerStore>((set, get) => ({
   ...getInitialState(),
 
-  loadPlayer: async () => {
-    const data = await fetchPlayer();
+  loadPlayer: () => {
+    // Get the initial state of the player
+    const data = getInitialState();
     set(data);
   },
 
-  setSetting: async (key, value) => {
+  setSetting: (key, value) => {
+    // Set a setting for the player
     const newSettings = { ...get().settings, [key]: value };
     const newState = { ...get(), settings: newSettings };
     set({ settings: newSettings });
-    await savePlayer(newState);
+    localStorage.setItem(PLAYER_KEY, JSON.stringify(newState));
   },
 
-  addCompletedLevel: async (levelId) => {
+  addCompletedLevel: (levelId) => {
+    // Add a completed level to the player
     if (!get().completedLevels.includes(levelId)) {
+      // If the level is not already completed, add it to the completed levels
       const newCompleted = [...get().completedLevels, levelId];
       const newState = { ...get(), completedLevels: newCompleted };
       set({ completedLevels: newCompleted });
-      await savePlayer(newState);
+      localStorage.setItem(PLAYER_KEY, JSON.stringify(newState));
     }
   },
 
-  unlockLevel: async (levelId) => {
+  unlockLevel: (levelId) => {
+    // Unlock a level for the player
     if (!get().unlockedLevels.includes(levelId)) {
+      // If the level is not already unlocked, add it to the unlocked levels
       const newUnlocked = [...get().unlockedLevels, levelId];
       const newState = { ...get(), unlockedLevels: newUnlocked };
       set({ unlockedLevels: newUnlocked });
-      await savePlayer(newState);
+      localStorage.setItem(PLAYER_KEY, JSON.stringify(newState));
     }
   },
 }));

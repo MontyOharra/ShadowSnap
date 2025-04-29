@@ -68,9 +68,7 @@ export default function PieceInventory() {
   };
 
   function handleColorChange(color: string) {
-    if (selectedPieceId) {
       setStagedPieceColor(color);
-    }
   }
 
   return (

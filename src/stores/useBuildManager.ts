@@ -3,40 +3,39 @@ import { snapAndValidate, isStudUnderPieces } from "../utils/studUtils";
 import { Piece, StagedPiece, Position3, Direction } from "@/types";
 import { useInventoryManager } from "./useInventoryManager";
 import { useBasePlateStore } from "./useBasePlateStore";
+import { LevelPiece } from "../utils/dataUtils";
 
+// Define the state interface for the build manager
 interface BuildManagerState {
-  pieces: Piece[];
-  stagedPiece: StagedPiece | null;
-  nextKey: number;
+  pieces: Piece[]; // An array of all the pieces in the build
+  stagedPiece: StagedPiece | null; // The piece that is currently being staged
+  nextKey: number; // The next key for the piece
 }
 
+// Define the actions interface for the build manager
 interface BuildManagerActions {
-  stageNewPiece: (pos?: [number, number]) => void;
-  stageExistingPiece: (key: number) => void;
-  unstagePiece: () => void;
-  moveStagedPiece: (dir: Direction) => void;
-  rotateStagedPiece: (direction: "left" | "right") => void;
-  confirmPlace: (color?: string) => void;
-  removePiece: () => void;
-  import: (levelData: {
-    pieces: Array<{
-      pieceId: string;
-      color: string;
-      position: Position3;
-      rotation: Position3;
-    }>;
-  }) => void;
+  stageNewPiece: (pos?: [number, number]) => void; // Stage a new piece at the given position
+  stageExistingPiece: (key: number) => void; // Stage an existing piece by its key
+  unstagePiece: () => void; // Remove the currently staged piece
+  moveStagedPiece: (dir: Direction) => void; // Move the staged piece in a direction
+  rotateStagedPiece: (direction: "left" | "right") => void; // Rotate the staged piece
+  confirmPlace: (color?: string) => void; // Place the staged piece in the build
+  removePiece: () => void; // Remove a piece from the build
+  import: (levelData: { pieces: LevelPiece[] }) => void; // Import a level's pieces
+  export: () => { pieces: LevelPiece[] }; // Export the current build's pieces
 }
 
 export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
-  (set) => ({
-    pieces: [],
-    stagedPiece: null,
-    nextKey: 1,
+  (set, get) => ({
+    // Initial state
+    pieces: [], // No pieces initially
+    stagedPiece: null, // No staged piece initially
+    nextKey: 1, // Start with key 1
 
+    // Update the ID of the currently staged piece
     setNewPieceId: (newPieceId: string) =>
       set((state) => {
-        // If no staged piece, set the new piece id
+        // If no staged piece, do nothing
         if (!state.stagedPiece) return {};
         // If the new piece id is the same as the staged piece id, do nothing
         if (state.stagedPiece.pieceId === newPieceId) return {};
@@ -47,7 +46,7 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
           pieceId: newPieceId,
         };
 
-        // Get baseplate from the store
+        // Get baseplate from the baseplate store
         const { basePlate } = useBasePlateStore
           .getState()
           .getBasePlateDetails();
@@ -66,6 +65,7 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
         };
       }),
 
+    // Stage a new piece at the given position
     stageNewPiece: (pos = [0, 0]) =>
       set((state) => {
         const selectedPieceId = useInventoryManager.getState().selectedPieceId;
@@ -76,11 +76,11 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
           .getState()
           .getBasePlateDetails();
 
-        const key = state.nextKey;
+        const key = state.nextKey; // The key for the new piece
         const newStagedPiece: StagedPiece = {
           key: key.toString(),
           pieceId: selectedPieceId,
-          pos: [pos[0], 0, pos[1]] as Position3,
+          pos: [pos[0], 0, pos[1]] as Position3, // The position of the new piece
           rot: [0, 0, 0] as Position3,
           isNew: true,
           isValidPosition: true,
@@ -100,18 +100,23 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
         };
       }),
 
+    // Stage an existing piece by its key
     stageExistingPiece: (key: number) =>
       set((state) => {
+        // If there is already a staged piece, do nothing
         if (state.stagedPiece) return {};
+        // Find the piece to be staged
         const pieceToBeStaged = state.pieces.find(
           (p) => p.key === key.toString()
         );
         if (!pieceToBeStaged) return {};
 
+        // Check to see if piece is under another piece. If so, do not allow user to stage it
         if (isStudUnderPieces(pieceToBeStaged, state.pieces)) {
           return {};
         }
 
+        // Set the selected piece color to match the staged piece's color
         useInventoryManager
           .getState()
           .setSelectedPieceColor(pieceToBeStaged.color ?? "#ffffff");
@@ -133,6 +138,7 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
         };
       }),
 
+    // Move the staged piece in a direction
     moveStagedPiece: (dir: Direction) =>
       set((state) => {
         if (!state.stagedPiece) return {};
@@ -142,9 +148,11 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
           .getState()
           .getBasePlateDetails();
 
-        const step = 1;
+        const step = 1; // The step size for the movement
         const updatedStagedPiece: StagedPiece = {
           ...state.stagedPiece,
+          // Update the position of the staged piece by adding or subtracting
+          //  the step size to the x or z axis depending on the direction
           pos: [
             state.stagedPiece.pos[0] +
               (dir === "left" ? -step : dir === "right" ? step : 0),
@@ -165,6 +173,7 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
         };
       }),
 
+    // Rotate the staged piece
     rotateStagedPiece: (direction: "left" | "right") =>
       set((state) => {
         if (!state.stagedPiece) return {};
@@ -197,28 +206,32 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
         };
       }),
 
+    // Place the staged piece in the build
     confirmPlace: (color?: string) =>
       set((state) => {
         if (!state.stagedPiece || !state.stagedPiece.isValidPosition) return {};
 
         // Consume the piece from inventory
-        if (state.stagedPiece.isNew) {
-          useInventoryManager.getState().consumePiece();
-        }
-
         const newPlacedPiece: Piece = {
           key: state.stagedPiece.key,
           pieceId: state.stagedPiece.pieceId,
           pos: state.stagedPiece.pos,
           rot: state.stagedPiece.rot,
-          color: color ?? useInventoryManager.getState().selectedPieceColor,
+          color:
+            color ??
+            state.stagedPiece.color ??
+            useInventoryManager.getState().selectedPieceColor,
         };
+        if (state.stagedPiece.isNew) {
+          useInventoryManager.getState().consumePiece();
+        }
         return {
           pieces: [...state.pieces, newPlacedPiece],
           stagedPiece: null,
         };
       }),
 
+    // Remove the currently staged piece
     unstagePiece: () =>
       set((state) => {
         if (!state.stagedPiece) return {};
@@ -250,32 +263,29 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
           stagedPiece: null,
         };
       }),
-    
+
+    // Remove a piece from the build
     removePiece: () =>
       set((state) => {
         if (!state.stagedPiece) return {};
-        useInventoryManager.getState().addPieceToInventory(state.stagedPiece.pieceId, 1);
+        useInventoryManager
+          .getState()
+          .addPieceToInventory(state.stagedPiece.pieceId, 1);
         return {
           pieces: state.pieces.filter((p) => p.key !== state.stagedPiece?.key),
           stagedPiece: null,
         };
       }),
 
-    import: (levelData: {
-      pieces: Array<{
-        pieceId: string;
-        color: string;
-        position: Position3;
-        rotation: Position3;
-      }>;
-    }) => {
+    // Import a level's pieces
+    import: (levelData: { pieces: LevelPiece[] }) => {
       set((state) => {
-        // Clear existing pieces
+        // Clear existing pieces and import new ones
         const newPieces = levelData.pieces.map((piece, index) => ({
           key: (state.nextKey + index).toString(),
           pieceId: piece.pieceId,
-          pos: piece.position,
-          rot: piece.rotation,
+          pos: piece.position as Position3,
+          rot: piece.rotation as Position3,
           color: piece.color,
         }));
 
@@ -284,6 +294,19 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
           nextKey: state.nextKey + newPieces.length,
         };
       });
+    },
+
+    // Export the current build's pieces
+    export: () => {
+      const state = get();
+      return {
+        pieces: state.pieces.map((piece) => ({
+          pieceId: piece.pieceId,
+          color: piece.color ?? "#ffffff",
+          position: piece.pos,
+          rotation: piece.rot,
+        })),
+      };
     },
   })
 );

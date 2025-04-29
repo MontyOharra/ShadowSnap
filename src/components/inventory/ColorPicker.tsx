@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ColorPickerProps {
   selectedColor: string;
@@ -26,7 +26,17 @@ export default function ColorPicker({
   selectedColor,
   onColorChange,
 }: ColorPickerProps) {
+  const [currentColor, setCurrentColor] = useState(selectedColor);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentColor(selectedColor);
+  }, [selectedColor]);
+
+  const handleColorClick = (color: string) => {
+    onColorChange(color);
+    setIsOpen(false);
+  };
 
   return (
     <div
@@ -68,7 +78,7 @@ export default function ColorPicker({
               width: "24px",
               height: "24px",
               borderRadius: "4px",
-              backgroundColor: selectedColor,
+              backgroundColor: currentColor,
               border: "1px solid #ddd",
               cursor: "pointer",
             }}
@@ -76,8 +86,8 @@ export default function ColorPicker({
           />
           <input
             type="color"
-            value={selectedColor}
-            onChange={(e) => onColorChange(e.target.value)}
+            value={currentColor}
+            onChange={(e) => handleColorClick(e.target.value)}
             style={{
               width: "24px",
               height: "24px",
@@ -112,10 +122,7 @@ export default function ColorPicker({
                 border: "1px solid #ddd",
                 cursor: "pointer",
               }}
-              onClick={() => {
-                onColorChange(color);
-                setIsOpen(false);
-              }}
+              onClick={() => handleColorClick(color)}
             />
           ))}
         </div>

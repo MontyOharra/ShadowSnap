@@ -3,10 +3,10 @@ import { PieceDetail } from "@/types";
 import { pieceDetails } from "@/data/pieceDetails";
 
 interface InventoryManagerState {
-  piecesDetails: PieceDetail[];
-  inventory: Map<string, number | "infinity">;
-  selectedPieceId: string | null;
-  selectedPieceColor: string;
+  piecesDetails: PieceDetail[]; // An array of all the piece details
+  inventory: Map<string, number | "infinity">; // A map of all the pieces in the inventory and their counts
+  selectedPieceId: string | null; // The ID of the piece that is currently selected
+  selectedPieceColor: string; // The color of the piece that is currently selected
 }
 
 interface InventoryManagerActions {
@@ -15,6 +15,7 @@ interface InventoryManagerActions {
   getPieceCount: (pieceId: string) => number | "infinity";
   getAllPieceTypes: () => PieceDetail[];
   setPieceCount: (pieceId: string, count: number | "infinity") => void;
+  setAllPiecesToZero: () => void;
   setAllPiecesToInfinity: () => void;
   setSelectedPieceId: (pieceId: string | null) => void;
   setSelectedPieceColor: (color: string) => void;
@@ -48,8 +49,14 @@ export const useInventoryManager = create<
   },
 
   consumePiece: () => {
+    /* 
+      Decrement the count of the selected piece
+      If the count reaches 0, find the next available piece and set it as the selected piece
+    */
+
     set((state) => {
       const currentCount = state.inventory.get(state.selectedPieceId!);
+      // Do not consume a piece if its count is infinity
       if (currentCount === "infinity") return {};
 
       if (currentCount !== undefined) {
@@ -65,8 +72,7 @@ export const useInventoryManager = create<
           return {
             inventory: newInventory,
             selectedPieceId: nextAvailablePiece?.pieceId ?? null,
-            selectedPieceColor:
-              nextAvailablePiece?.defaultColor ?? state.selectedPieceColor,
+            selectedPieceColor: nextAvailablePiece?.defaultColor ?? "#ffffff",
           };
         }
         return { inventory: newInventory };
@@ -80,6 +86,11 @@ export const useInventoryManager = create<
   },
 
   setPieceCount: (pieceId: string, count: number | "infinity") => {
+    /* 
+      Set the count of a piece
+      If the count is infinity, set the count to infinity
+      If the count is a number, set the count to the number
+    */
     set((state) => {
       const newInventory = new Map(state.inventory);
       newInventory.set(pieceId, count);
@@ -87,7 +98,23 @@ export const useInventoryManager = create<
     });
   },
 
+  setAllPiecesToZero: () => {
+    /* 
+      Set the count of all pieces to 0
+    */
+    set((state) => {
+      const newInventory = new Map(state.inventory);
+      for (const [pieceId] of newInventory) {
+        newInventory.set(pieceId, 0);
+      }
+      return { inventory: newInventory };
+    });
+  },
+
   setAllPiecesToInfinity: () => {
+    /* 
+      Set the count of all pieces to infinity
+    */
     set((state) => {
       const newInventory = new Map(state.inventory);
       for (const [pieceId] of newInventory) {
@@ -102,7 +129,7 @@ export const useInventoryManager = create<
       const piece = pieceDetails.find((p) => p.pieceId === pieceId);
       return {
         selectedPieceId: pieceId,
-        selectedPieceColor: piece?.defaultColor,
+        selectedPieceColor: piece?.defaultColor ?? "#ffffff",
       };
     });
   },

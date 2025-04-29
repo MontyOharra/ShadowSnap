@@ -1,17 +1,18 @@
 import { Position3 } from "@/types";
 
-interface LevelPiece {
-  pieceId: string;
-  color: string;
-  position: number[];
-  rotation: number[];
+// Interface for a single piece in a level
+export interface LevelPiece {
+  pieceId: string; // Unique identifier for the piece
+  color: string; // Color of the piece
+  position: number[]; // 3D position of the piece [x, y, z]
+  rotation: number[]; // 3D rotation of the piece [x, y, z]
 }
 
+// Interface for a complete level's data
 interface LevelData {
-  id: string;
-  name: string;
-  createdBy: string;
-  pieces: LevelPiece[];
+  id: string; // Unique identifier for the level
+  name: string; // Display name of the level
+  pieces: LevelPiece[]; // Array of pieces in the level
 }
 
 export function transformLevelData(data: LevelData): {
@@ -50,11 +51,65 @@ export async function loadLevelData(file: File): Promise<LevelData> {
     return {
       id: data.id,
       name: data.name,
-      createdBy: data.createdBy,
       pieces: data.pieces,
     };
   } catch (error) {
     console.error("Error loading level data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generates a unique level ID
+ * @returns A unique string ID
+ */
+function generateLevelId(): string {
+  return `level_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+/**
+ * Saves level data to a JSON file in the data/levels/ directory
+ * @param levelName - The name of the level (used in the JSON data)
+ * @param pieces - The array of pieces to save
+ * @returns Promise that resolves when the save is complete
+ * @throws Error if the save operation fails
+ */
+export async function saveLevelData(
+  levelName: string,
+  pieces: LevelPiece[]
+): Promise<void> {
+  try {
+    // Generate a unique level ID
+    const levelId = generateLevelId();
+
+    // Create the level data object
+    const levelData: LevelData = {
+      id: levelId,
+      name: levelName,
+      pieces: pieces,
+    };
+
+    // Create a blob with the level data
+    const blob = new Blob([JSON.stringify(levelData, null, 2)], {
+      type: "application/json",
+    });
+
+    // Create a download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    // Save with the level ID as the filename
+    a.download = `data/levels/${levelId}.json`;
+
+    // Trigger the download
+    document.body.appendChild(a);
+    a.click();
+
+    // Cleanup
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error saving level data:", error);
     throw error;
   }
 }

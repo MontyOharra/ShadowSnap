@@ -82,8 +82,8 @@ export default function UserBuildRenderer({
     onMove("up", () => moveStagedPiece("up"));
     onMove("down", () => moveStagedPiece("down"));
 
-    onPress("add", () => stageNewPiece([0, 0]));
-    onPress("place", () => confirmPlace());
+    onPress("add", () => stageNewPiece([0, 0])); // Space bar to select a new piece
+    onPress("place", () => confirmPlace()); // P to place the piece
     onPress("esc", () => unstagePiece());
     onPress("q", () => rotateStagedPiece("left"));
     onPress("e", () => rotateStagedPiece("right"));
@@ -95,7 +95,6 @@ export default function UserBuildRenderer({
   return (
     <group rotation={basePlateRotation}>
       {/* Render base plate */}
-
 
       {/* Render placed pieces */}
       {pieces.map((p) => {

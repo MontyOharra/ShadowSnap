@@ -24,14 +24,19 @@ export default function PuzzleLevel() {
     // TODO: Replace with dynamic import based on levelId
     const data = transformLevelData(level1);
 
+    useInventoryManager.getState().setAllPiecesToZero();
+
     // get number of each piece in the level
     const pieceCounts = data.pieces.reduce((acc: Record<string, number>, p) => {
       acc[p.pieceId] = (acc[p.pieceId] || 0) + 1;
       return acc;
     }, {});
 
+    console.log(pieceCounts);
+
     // Set inventory to the number of each piece in the level
     const inventory = useInventoryManager.getState().inventory;
+
     Object.keys(pieceCounts).forEach((pieceId) => {
       inventory.set(pieceId, pieceCounts[pieceId]);
     });
@@ -73,8 +78,8 @@ export default function PuzzleLevel() {
           { name: "right", keys: ["ArrowRight", "d"] },
           { name: "up", keys: ["ArrowUp", "w"] },
           { name: "down", keys: ["ArrowDown", "s"] },
-          { name: "add", keys: ["p"] },
-          { name: "place", keys: ["Enter"] },
+          { name: "add", keys: ["Space"] },
+          { name: "place", keys: ["p"] },
           { name: "esc", keys: ["Escape"] },
           { name: "q", keys: ["q"] },
           { name: "e", keys: ["e"] },

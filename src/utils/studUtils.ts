@@ -8,12 +8,134 @@ const quaternion = new THREE.Quaternion();
 
 const GRID = 0.5;
 
+/**
+ * Snaps a value to the nearest grid point
+ */
 function getSnappedValue(n: number): number {
   return Math.round(n / GRID) * GRID;
 }
 
+/**
+ * Creates a key for the stud position map
+ */
 function keyXZ(x: number, z: number): string {
   return `${getSnappedValue(x)}|${getSnappedValue(z)}`;
+}
+
+/**
+ * Creates a map of stud positions to their highest Y values
+ */
+function createStudHeightMap(
+  pieces: (Piece | BasePlate)[]
+): Record<string, number> {
+  const map: Record<string, number> = {};
+  pieces.forEach((p) =>
+    getPieceStudCoords(p, "top").forEach((s) => {
+      const k = keyXZ(s.x, s.z);
+      map[k] = map[k] === undefined ? s.y : Math.max(map[k], s.y);
+    })
+  );
+  return map;
+}
+
+/**
+ * Finds the center bottom stud of a piece
+ */
+function findCenterBottomStud(def: PieceDetail): Position3 | null {
+  const bottomStuds = def.bottomStudPositions;
+  let centerBottomStudPosition: Position3 | null = null;
+  let minDistance = Infinity;
+  let maxXZSum = -Infinity;
+
+  bottomStuds.forEach(([x, y, z]) => {
+    const distance = Math.sqrt(x ** 2 + z ** 2);
+    const xzSum = x + z;
+
+    if (
+      distance < minDistance ||
+      (distance === minDistance && xzSum > maxXZSum)
+    ) {
+      minDistance = distance;
+      maxXZSum = xzSum;
+      centerBottomStudPosition = [x, y, z];
+    }
+  });
+
+  return centerBottomStudPosition;
+}
+
+/**
+ * Snaps a coordinate to the grid based on baseplate size
+ */
+function snapToGrid(coord: number, size: number): number {
+  if (size % 2 === 1) {
+    // Odd size: snap to whole numbers
+    return Math.round(coord);
+  } else {
+    // Even size: snap to .5 intervals only
+    return Math.floor(coord) + 0.5;
+  }
+}
+
+/**
+ * Calculates the rotated corners of a piece
+ */
+function getRotatedCorners(
+  pieceSize: THREE.Vector3,
+  rotation: number,
+  position: [number, number, number]
+): [number, number][] {
+  const halfSizeX = pieceSize.x / 2;
+  const halfSizeZ = pieceSize.z / 2;
+
+  return [
+    [-halfSizeX, -halfSizeZ],
+    [halfSizeX, -halfSizeZ],
+    [halfSizeX, halfSizeZ],
+    [-halfSizeX, halfSizeZ],
+  ].map(([x, z]) => {
+    const rotated = new THREE.Vector3(x, 0, z).applyQuaternion(
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotation, 0))
+    );
+    return [rotated.x + position[0], rotated.z + position[2]];
+  });
+}
+
+/**
+ * Checks if a piece is within baseplate bounds
+ */
+function isWithinBounds(
+  corners: [number, number][],
+  basePlateSizeX: number,
+  basePlateSizeZ: number
+): boolean {
+  const halfBaseX = basePlateSizeX / 2;
+  const halfBaseZ = basePlateSizeZ / 2;
+  return !corners.some(
+    ([x, z]) => Math.abs(x) > halfBaseX || Math.abs(z) > halfBaseZ
+  );
+}
+
+/**
+ * Gets the highest Y position for a piece's studs
+ */
+function getHighestStudY(
+  piece: StagedPiece,
+  studMap: Record<string, number>,
+  position: [number, number, number]
+): { maxY: number; valid: boolean } {
+  let maxY = -Infinity;
+  let valid = false;
+
+  getPieceStudCoords({ ...piece, pos: position }, "bottom").forEach((s) => {
+    const k = keyXZ(s.x, s.z);
+    if (studMap[k] !== undefined) {
+      valid = true;
+      maxY = Math.max(maxY, studMap[k]);
+    }
+  });
+
+  return { maxY, valid };
 }
 
 // ------------------------------------------------------------------
@@ -58,11 +180,10 @@ export function getPieceStudCoords(
   const studPosition = new THREE.Vector3();
   return targetStuds.map(([xPos, yPos, zPos]) => {
     studPosition
-      .set(xPos, yPos, zPos) // Stud positions are already centered
-      .applyQuaternion(studRotationQuat) // Rotate the stud based on quaternion calculation
-      .add(new THREE.Vector3(...piece.pos)); // Translate the stud to the correct position
+      .set(xPos, yPos, zPos)
+      .applyQuaternion(studRotationQuat)
+      .add(new THREE.Vector3(...piece.pos));
 
-    // snap X & Z to exact ½‑stud grid so keys always match
     return {
       x: getSnappedValue(studPosition.x),
       y: studPosition.y,
@@ -72,10 +193,7 @@ export function getPieceStudCoords(
   });
 }
 
-export function isStudUnderPieces(
-  piece: Piece,
-  allPieces: Piece[],
-): boolean {
+export function isStudUnderPieces(piece: Piece, allPieces: Piece[]): boolean {
   const bottomStuds: Position3[] = [];
   [...allPieces].forEach((p) =>
     getPieceStudCoords(p, "bottom").forEach((s) => {
@@ -84,7 +202,9 @@ export function isStudUnderPieces(
   );
   const topStuds = getPieceStudCoords(piece, "top");
 
-  return bottomStuds.some((s) => topStuds.some((t) => t.x === s[0] && t.y === s[1] && t.z === s[2]));
+  return bottomStuds.some((s) =>
+    topStuds.some((t) => t.x === s[0] && t.y === s[1] && t.z === s[2])
+  );
 }
 
 // ------------------------------------------------------------------
@@ -95,55 +215,25 @@ export function snapAndValidate(
   stagedPiece: StagedPiece,
   basePlatePiece: BasePlate
 ): { position: Position3; valid: boolean } {
-  // 1. build map: (x|z) -> highest top‑stud Y
-  const map: Record<string, number> = {};
+  // 1. Build stud height map
+  const studMap = createStudHeightMap([basePlatePiece, ...allPieces]);
 
-  // Include baseplate piece in the map calculation
-  [basePlatePiece, ...allPieces].forEach((p) =>
-    getPieceStudCoords(p, "top").forEach((s) => {
-      const k = keyXZ(s.x, s.z);
-      map[k] = map[k] === undefined ? s.y : Math.max(map[k], s.y);
-    })
-  );
-
-  // 2. Get the piece definition to access stud positions
+  // 2. Get the piece definition
   const def = getPieceFromId(stagedPiece.pieceId);
   if (!def) {
     console.error("Unknown piece type:", stagedPiece.pieceId);
     return { position: stagedPiece.pos, valid: false };
   }
 
-  // Find the bottom stud closest to center
-  const bottomStuds = def.bottomStudPositions;
-  let centerBottomStudPosition: Position3 | null = null;
-  let minDistance = Infinity;
-  let maxXZSum = -Infinity;
-
-  bottomStuds.forEach(([x, y, z]) => {
-    const distance = Math.sqrt(x ** 2 + z ** 2);
-    const xzSum = x + z;
-
-    if (
-      distance < minDistance ||
-      (distance === minDistance && xzSum > maxXZSum)
-    ) {
-      minDistance = distance;
-      maxXZSum = xzSum;
-      centerBottomStudPosition = [x, y, z];
-    }
-  });
-
-  if (!centerBottomStudPosition) {
+  // 3. Find center bottom stud
+  const centerBottomStud = findCenterBottomStud(def);
+  if (!centerBottomStud) {
     console.error("No bottom studs found for piece:", stagedPiece.pieceId);
     return { position: stagedPiece.pos, valid: false };
   }
 
-  // Calculate world position of the center bottom stud
-  const studWorldPos = new THREE.Vector3(
-    centerBottomStudPosition[0],
-    centerBottomStudPosition[1],
-    centerBottomStudPosition[2]
-  )
+  // 4. Calculate world position of center bottom stud
+  const studWorldPos = new THREE.Vector3(...centerBottomStud)
     .applyQuaternion(
       new THREE.Quaternion().setFromEuler(
         new THREE.Euler(0, stagedPiece.rot[1], 0)
@@ -151,90 +241,46 @@ export function snapAndValidate(
     )
     .add(new THREE.Vector3(...stagedPiece.pos));
 
-  // Helper function to snap a coordinate based on baseplate size
-  const snapToGrid = (coord: number, size: number): number => {
-    if (size % 2 === 1) {
-      // Odd size: snap to whole numbers
-      return Math.round(coord);
-    } else {
-      // Even size: snap to .5 intervals only
-      return Math.floor(coord) + 0.5;
-    }
-  };
-
-  // Snap the stud position to the grid
+  // 5. Snap to grid
   const snappedX = snapToGrid(studWorldPos.x, basePlatePiece.sizeX);
   const snappedZ = snapToGrid(studWorldPos.z, basePlatePiece.sizeZ);
 
-  // Calculate the offset from piece center to the stud in world space
+  // 6. Calculate final position
   const centerToStudOffset = new THREE.Vector3(
-    centerBottomStudPosition[0],
-    centerBottomStudPosition[1],
-    centerBottomStudPosition[2]
+    ...centerBottomStud
   ).applyQuaternion(
     new THREE.Quaternion().setFromEuler(
       new THREE.Euler(0, stagedPiece.rot[1], 0)
     )
   );
 
-  // Calculate final piece position by subtracting the offset
   const finalX = snappedX - centerToStudOffset.x;
   const finalZ = snappedZ - centerToStudOffset.z;
 
-  // Check if the piece is within baseplate bounds
+  // 7. Check bounds
   const pieceGeometry = def.geometry();
   pieceGeometry.computeBoundingBox();
-  const pieceBoundingBox = pieceGeometry.boundingBox!;
   const pieceSize = new THREE.Vector3();
-  pieceBoundingBox.getSize(pieceSize);
+  pieceGeometry.boundingBox!.getSize(pieceSize);
 
-  // Calculate the piece's bounds in world space, considering rotation
-  const halfSizeX = pieceSize.x / 2;
-  const halfSizeZ = pieceSize.z / 2;
-
-  // Calculate the rotated corners of the piece
-  const corners = [
-    [-halfSizeX, -halfSizeZ],
-    [halfSizeX, -halfSizeZ],
-    [halfSizeX, halfSizeZ],
-    [-halfSizeX, halfSizeZ],
-  ].map(([x, z]) => {
-    const rotated = new THREE.Vector3(x, 0, z).applyQuaternion(
-      new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(0, stagedPiece.rot[1], 0)
-      )
-    );
-    return [rotated.x + finalX, rotated.z + finalZ];
-  });
-
-  // Check if any corner is outside the baseplate bounds
-  const isOutOfBounds = corners.some(([x, z]) => {
-    const halfBaseX = basePlatePiece.sizeX / 2;
-    const halfBaseZ = basePlatePiece.sizeZ / 2;
-    return Math.abs(x) > halfBaseX || Math.abs(z) > halfBaseZ;
-  });
-
-  if (isOutOfBounds) {
+  const corners = getRotatedCorners(pieceSize, stagedPiece.rot[1], [
+    finalX,
+    0,
+    finalZ,
+  ]);
+  if (!isWithinBounds(corners, basePlatePiece.sizeX, basePlatePiece.sizeZ)) {
     return {
       position: [finalX, stagedPiece.pos[1], finalZ] as Position3,
       valid: false,
     };
   }
 
-  // 5. Find the highest Y position for all studs at this XZ
-  let maxY = -Infinity;
-  let valid = false;
-
-  getPieceStudCoords(
-    { ...stagedPiece, pos: [finalX, 0, finalZ] },
-    "bottom"
-  ).forEach((s) => {
-    const k = keyXZ(s.x, s.z);
-    if (map[k] !== undefined) {
-      valid = true;
-      maxY = Math.max(maxY, map[k]);
-    }
-  });
+  // 8. Find highest Y position
+  const { maxY, valid } = getHighestStudY(stagedPiece, studMap, [
+    finalX,
+    0,
+    finalZ,
+  ]);
 
   return {
     position: [finalX, valid ? maxY : stagedPiece.pos[1], finalZ] as Position3,
