@@ -17,6 +17,7 @@ type InventoryState = {
   setAllPiecesToZero: () => void;
   setAllPiecesToInfinity: () => void;
   consumePiece: () => void;
+  addPieceToInventory: (pieceId: DefinedPieceId, count: number) => void;
 };
 
 export const useInventoryManager = create<InventoryState>((set, get) => {
@@ -103,6 +104,26 @@ export const useInventoryManager = create<InventoryState>((set, get) => {
         }
 
         return {};
+      });
+    },
+
+    // Add pieces back to inventory when they're removed
+    addPieceToInventory: (pieceId, count) => {
+      set((state) => {
+        const newInventory = new Map(state.inventory);
+        const currentCount = newInventory.get(pieceId);
+
+        // Don't add to infinity
+        if (currentCount === "infinity") {
+          return {};
+        }
+
+        // Calculate new count
+        const newCount =
+          typeof currentCount === "number" ? currentCount + count : count;
+
+        newInventory.set(pieceId, newCount);
+        return { inventory: newInventory };
       });
     },
 

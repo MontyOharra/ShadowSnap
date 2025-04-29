@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { snapAndValidate, isStudUnderPieces } from "../utils/studUtils";
-import { Piece, StagedPiece, Position3, Direction } from "@/types";
+import {
+  Piece,
+  StagedPiece,
+  Position3,
+  Direction,
+  DefinedPieceId,
+} from "@/types";
 import { useInventoryManager } from "./useInventoryManager";
 import { useBasePlateStore } from "./useBasePlateStore";
 import { LevelPiece } from "../utils/dataUtils";
@@ -268,9 +274,12 @@ export const useBuildManager = create<BuildManagerState & BuildManagerActions>(
     removePiece: () =>
       set((state) => {
         if (!state.stagedPiece) return {};
-        useInventoryManager
-          .getState()
-          .addPieceToInventory(state.stagedPiece.pieceId, 1);
+
+        // Use the correct type for piece ID
+        const pieceId = state.stagedPiece.pieceId as DefinedPieceId;
+
+        useInventoryManager.getState().addPieceToInventory(pieceId, 1);
+
         return {
           pieces: state.pieces.filter((p) => p.key !== state.stagedPiece?.key),
           stagedPiece: null,

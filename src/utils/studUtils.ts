@@ -4,8 +4,6 @@ import { getBasePlateFromId } from "../data/basePlateDetails";
 import { Piece, StudWorld, Position3, StagedPiece, BasePlate } from "@/types";
 import { PieceDetail } from "@/types";
 
-const quaternion = new THREE.Quaternion();
-
 const GRID = 0.5;
 
 /**
@@ -88,15 +86,18 @@ function getRotatedCorners(
   const halfSizeX = pieceSize.x / 2;
   const halfSizeZ = pieceSize.z / 2;
 
+  // Create rotation quaternion for all axes
+  const rotationQuat = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler(0, rotation, 0) // For boundaries, we still only use Y rotation
+  );
+
   return [
     [-halfSizeX, -halfSizeZ],
     [halfSizeX, -halfSizeZ],
     [halfSizeX, halfSizeZ],
     [-halfSizeX, halfSizeZ],
   ].map(([x, z]) => {
-    const rotated = new THREE.Vector3(x, 0, z).applyQuaternion(
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotation, 0))
-    );
+    const rotated = new THREE.Vector3(x, 0, z).applyQuaternion(rotationQuat);
     return [rotated.x + position[0], rotated.z + position[2]];
   });
 }
@@ -173,14 +174,18 @@ export function getPieceStudCoords(
     return [];
   }
 
-  // Quaternion for yaw rotation
-  quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), piece.rot[1]);
+  // Create quaternion for the rotation based on the piece's full rotation
+  const pieceRotation = new THREE.Euler(
+    piece.rot[0],
+    piece.rot[1],
+    piece.rot[2],
+    "XYZ"
+  );
+  const studRotationQuat = new THREE.Quaternion().setFromEuler(pieceRotation);
 
-  const studRotationQuat = new THREE.Quaternion();
-  const studPosition = new THREE.Vector3();
   return targetStuds.map(([xPos, yPos, zPos]) => {
-    studPosition
-      .set(xPos, yPos, zPos)
+    // Apply rotation to the stud position
+    const studPosition = new THREE.Vector3(xPos, yPos, zPos)
       .applyQuaternion(studRotationQuat)
       .add(new THREE.Vector3(...piece.pos));
 
@@ -232,42 +237,45 @@ export function snapAndValidate(
     return { position: stagedPiece.pos, valid: false };
   }
 
-  // 4. Calculate world position of center bottom stud
+  // 4. Create a full rotation quaternion for all axes
+  const pieceRotation = new THREE.Euler(
+    stagedPiece.rot[0],
+    stagedPiece.rot[1],
+    stagedPiece.rot[2],
+    "XYZ"
+  );
+  const rotationQuat = new THREE.Quaternion().setFromEuler(pieceRotation);
+
+  // 5. Calculate world position of center bottom stud with full rotation
   const studWorldPos = new THREE.Vector3(...centerBottomStud)
-    .applyQuaternion(
-      new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(0, stagedPiece.rot[1], 0)
-      )
-    )
+    .applyQuaternion(rotationQuat)
     .add(new THREE.Vector3(...stagedPiece.pos));
 
-  // 5. Snap to grid
+  // 6. Snap to grid
   const snappedX = snapToGrid(studWorldPos.x, basePlatePiece.sizeX);
   const snappedZ = snapToGrid(studWorldPos.z, basePlatePiece.sizeZ);
 
-  // 6. Calculate final position
+  // 7. Calculate final position considering rotation
   const centerToStudOffset = new THREE.Vector3(
     ...centerBottomStud
-  ).applyQuaternion(
-    new THREE.Quaternion().setFromEuler(
-      new THREE.Euler(0, stagedPiece.rot[1], 0)
-    )
-  );
+  ).applyQuaternion(rotationQuat);
 
   const finalX = snappedX - centerToStudOffset.x;
   const finalZ = snappedZ - centerToStudOffset.z;
 
-  // 7. Check bounds
+  // 8. Check bounds
   const pieceGeometry = def.geometry();
   pieceGeometry.computeBoundingBox();
   const pieceSize = new THREE.Vector3();
   pieceGeometry.boundingBox!.getSize(pieceSize);
 
-  const corners = getRotatedCorners(pieceSize, stagedPiece.rot[1], [
-    finalX,
-    0,
-    finalZ,
-  ]);
+  // Use full rotation value for corner calculation
+  const corners = getRotatedCorners(
+    pieceSize,
+    stagedPiece.rot[1], // Still use only Y rotation for bounds check
+    [finalX, 0, finalZ]
+  );
+
   if (!isWithinBounds(corners, basePlatePiece.sizeX, basePlatePiece.sizeZ)) {
     return {
       position: [finalX, stagedPiece.pos[1], finalZ] as Position3,
@@ -275,7 +283,7 @@ export function snapAndValidate(
     };
   }
 
-  // 8. Find highest Y position
+  // 9. Find highest Y position
   const { maxY, valid } = getHighestStudY(stagedPiece, studMap, [
     finalX,
     0,

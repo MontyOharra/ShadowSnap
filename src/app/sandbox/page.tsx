@@ -62,7 +62,19 @@ export default function SandboxPage() {
         overflow: "hidden",
       }}
     >
+      {/* Settings button at bottom left */}
       <SettingsButton />
+
+      {/* Save button at top left */}
+      <div className="absolute top-4 left-4 z-20">
+        <button
+          className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold shadow hover:bg-green-700 transition-colors"
+          onClick={() => setShowSaveDialog(true)}
+        >
+          Save Level
+        </button>
+      </div>
+
       <KeyboardControls
         map={[
           { name: "left", keys: ["ArrowLeft", "a"] },
@@ -90,13 +102,6 @@ export default function SandboxPage() {
 
       <BasePlateRotationScrollBar />
       <PieceInventory />
-
-      <button
-        className="fixed bottom-12 right-4 px-6 py-3 bg-green-600 text-white rounded-lg font-bold shadow hover:bg-green-700 transition-colors"
-        onClick={() => setShowSaveDialog(true)}
-      >
-        Save Level
-      </button>
 
       {showSaveDialog && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
