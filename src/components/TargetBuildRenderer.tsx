@@ -3,7 +3,27 @@ import { transformLevelData } from "@/utils/dataUtils";
 import { getLegoPiece } from "./Lego";
 import { useBasePlateStore } from "@/stores/useBasePlateStore";
 
-export default function TargetBuildRenderer({ levelId }: { levelId: string }) {
+interface LevelData {
+  id: string;
+  name: string;
+  pieces: Array<{
+    pieceId: string;
+    color: string;
+    position: [number, number, number];
+    rotation: [number, number, number];
+  }>;
+  createdBy?: string;
+}
+
+interface TargetBuildRendererProps {
+  levelId?: string;
+  levelData?: LevelData;
+}
+
+export default function TargetBuildRenderer({
+  levelId,
+  levelData,
+}: TargetBuildRendererProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pieces, setPieces] = useState<any[]>([]);
   const basePlateRotation = useBasePlateStore((s) => s.rotation);

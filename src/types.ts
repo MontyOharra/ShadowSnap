@@ -2,12 +2,32 @@ import * as THREE from "three";
 
 export type Position3 = [number, number, number];
 export type Direction = "left" | "right" | "up" | "down";
-export type DefinedPieceType = "brick" | "base-plate" | "slant";
+export type DefinedPieceType = "short-brick" | "medium-brick" | "tall-brick";
 export type DefinedPieceId =
+  | "brick-1x1x0.5"
   | "brick-1x1x1"
+  | "brick-1x1x2"
+  | "brick-2x2x0.5"
   | "brick-2x2x1"
-  | "brick-3x3x.5"
-  | "slant-1";
+  | "brick-2x2x2"
+  | "brick-2x3x0.5"
+  | "brick-2x3x1"
+  | "brick-2x3x2"
+  | "brick-2x4x0.5"
+  | "brick-2x4x1"
+  | "brick-2x4x2"
+  | "brick-1x2x0.5"
+  | "brick-1x2x1"
+  | "brick-1x2x2"
+  | "brick-1x3x0.5"
+  | "brick-1x3x1"
+  | "brick-1x3x2"
+  | "brick-1x4x0.5"
+  | "brick-1x4x1"
+  | "brick-1x4x2"
+  | "brick-3x3x0.5"
+  | "brick-3x3x1"
+  | "brick-3x3x2";
 export type DefinedBasePlateId = "base-plate-16x16" | "base-plate-8x3";
 
 export interface PieceDetail {

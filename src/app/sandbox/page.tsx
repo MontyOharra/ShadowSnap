@@ -25,6 +25,10 @@ export default function SandboxPage() {
 
   // Set all pieces to infinity when entering sandbox mode
   useEffect(() => {
+    // Reset the build manager pieces to an empty array
+    useBuildManager.getState().import({ pieces: [] });
+
+    // Set inventory to infinity
     setAllPiecesToInfinity();
   }, [setAllPiecesToInfinity]);
 
@@ -87,17 +91,15 @@ export default function SandboxPage() {
       <BasePlateRotationScrollBar />
       <PieceInventory />
 
-      {/* Save Level Button */}
       <button
-        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-green-600 text-white rounded-lg font-bold shadow hover:bg-green-700 transition-colors"
+        className="fixed bottom-12 right-4 px-6 py-3 bg-green-600 text-white rounded-lg font-bold shadow hover:bg-green-700 transition-colors"
         onClick={() => setShowSaveDialog(true)}
       >
         Save Level
       </button>
 
-      {/* Save Level Dialog */}
       {showSaveDialog && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-80">
             <h2 className="text-xl font-bold mb-4">Save Level</h2>
             <input
